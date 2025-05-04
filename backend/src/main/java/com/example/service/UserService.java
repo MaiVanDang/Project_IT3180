@@ -1,0 +1,117 @@
+package com.example.service;
+
+
+import com.example.dto.request.UserCreateRequest;
+import com.example.dto.response.ApiResponse;
+import com.example.dto.response.UserResponse;
+import com.example.entity.User;
+import com.example.exception.UserInfoException;
+import com.example.mapper.UserMapper;
+import com.example.repository.UserRepository;
+import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@AllArgsConstructor
+@Service
+public class UserService {
+    private final UserRepository userRepository;
+    private final UserMapper userMapper;
+    private PasswordEncoder passwordEncoder;
+
+    //Logic fetch all user
+    public List<User> fetchAllUser() {
+        return this.userRepository.findAll();
+    }
+
+    public List<UserResponse> fetchAllUserResponse() {
+        List<User> users = this.userRepository.findAll();
+        return this.userMapper.toUserResponseList(users);
+    }
+
+    //fetch user by id
+    public User fetchUserById(long id) throws UserInfoException {
+        User user = this.userRepository.findById(id)
+                .orElseThrow(() -> new UserInfoException("User with id " + id + " is not found"));
+        if (user.getIsActive() == 0) {
+            throw new UserInfoException("User with id " + id + " is not active");
+        }
+        return user;
+    }
+
+    //Logic get user by email
+    public User getUserByEmail(String email) {
+        return this.userRepository.findByEmail(email);
+    }
+
+    //Logic delete user by id
+    public ApiResponse<String> deleteUser(long id) throws UserInfoException {
+        User currentUser = this.fetchUserById(id);
+        if(currentUser != null) {
+            currentUser.setIsActive(0);
+            this.userRepository.save(currentUser);
+        }
+        else throw new UserInfoException("User with id " + id + " is not found");
+        ApiResponse<String> response = new ApiResponse<>();
+        response.setCode(HttpStatus.OK.value());
+        response.setMessage("delete user success");
+        response.setData(null);
+        return response;
+    }
+
+    //Logic update user
+    public User updateUser(User reqUser) throws UserInfoException {
+        User currentUser = this.fetchUserById(reqUser.getId());
+        if (currentUser != null) {
+            currentUser.setEmail(reqUser.getEmail());
+            currentUser.setName(reqUser.getName());
+            String hashPassword = this.passwordEncoder.encode(reqUser.getPassword());
+            currentUser.setPassword(hashPassword);
+            // update
+            currentUser = this.userRepository.save(currentUser);
+        }
+        else throw new UserInfoException("User with id " + reqUser.getId() + " is not found");
+        return currentUser;
+    }
+    //Check existed email
+    public boolean isEmailExist(String email) {
+        return this.userRepository.findByEmail(email) != null;
+    }
+    //Logic create user
+    public User createUser(UserCreateRequest userCreateRequest) throws UserInfoException {
+        if (isEmailExist(userCreateRequest.getEmail())) {
+            User existingUser = getUserByEmail(userCreateRequest.getEmail());
+            // If user existed and isActive = 1, throw exception
+            if (existingUser.getIsActive() == 1) {
+                throw new UserInfoException("User with email " + userCreateRequest.getEmail() + " already exists");
+            }
+            // If user existed but isActive = 0, set isActive = 1 and return updated user
+            existingUser.setIsActive(1);
+            return this.userRepository.save(existingUser);
+        }
+        // If email is not found, create a new user
+        User user = new User();
+        user.setName(userCreateRequest.getName());
+        String hashPassword = this.passwordEncoder.encode(userCreateRequest.getPassword());
+        user.setPassword(hashPassword);
+        user.setEmail(userCreateRequest.getEmail());
+        user.setAuthType("normal");
+        return this.userRepository.save(user);
+    }
+    public void updateUserToken(String token, String email) {
+        User currentUser = this.getUserByEmail(email);
+        if (currentUser != null) {
+            currentUser.setRefreshToken(token);
+            this.userRepository.save(currentUser);
+        }
+    }
+    public User getUserByRefreshTokenAndEmail(String token, String email) {
+        return this.userRepository.findByRefreshTokenAndEmail(token, email);
+    }
+    public UserResponse UserToUserResponse(User user) {
+        return this.userMapper.toUserResponse(user);
+    }
+}
