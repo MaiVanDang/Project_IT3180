@@ -13,16 +13,18 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Repository
-public interface InvoiceApartmentRepository extends JpaRepository<InvoiceApartment, Long>, JpaSpecificationExecutor<InvoiceApartment> {
-    @Query("SELECT new org.example.dto.response.InvoiceApartmentResponse(ia.invoice.id, ia.invoice.name, ia.invoice.description, ia.invoice.updatedAt, ia.invoice.createdAt, ia.paymentStatus, null) " +
+public interface InvoiceApartmentRepository
+        extends JpaRepository<InvoiceApartment, Long>, JpaSpecificationExecutor<InvoiceApartment> {
+    @Query("SELECT new com.example.dto.response.InvoiceApartmentResponse(ia.invoice.id, ia.invoice.name, ia.invoice.description, ia.invoice.updatedAt, ia.invoice.createdAt, ia.paymentStatus, null) "
+            +
             "FROM InvoiceApartment ia WHERE ia.apartment.addressNumber = :apartmentId")
     List<InvoiceApartmentResponse> findInvoicesByApartmentId(@Param("apartmentId") Long apartmentId);
 
-    @Modifying //Required to be used in queries that change data such as UPDATE, DELETE (i.e. not a SELECT query.)
+    @Modifying // Required to be used in queries that change data such as UPDATE, DELETE (i.e.
+               // not a SELECT query.)
     @Transactional
     @Query("DELETE FROM InvoiceApartment ia WHERE ia.invoice.id = :invoiceId")
     void deleteByInvoiceId(String invoiceId);
 
     InvoiceApartment findByInvoiceIdAndApartmentAddressNumber(String invoice_id, Long apartment_addressNumber);
 }
-
