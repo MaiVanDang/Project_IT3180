@@ -7,41 +7,36 @@ import "./Members.css";
 const Members = () => {
   const member = [
     {
-      fullName: "Bùi Lê Hùng",
-      sid: "20224994",
-      img: assets.Hung,
+      fullName: "Mai Văn Đăng",
+      sid: "20225699",
+      img: assets.Dang,
       role: "Backend Team",
     },
     {
-      fullName: "Bùi Lê Huy",
-      sid: "20225005",
-      img: assets.Huy,
+      fullName: "Phùng Duy Nghĩa",
+      sid: "20225896",
+      img: assets.Nghia,
       role: "Backend Team",
     },
     {
-      fullName: "Nguyễn Đạt Trọng",
-      sid: "20225103",
-      img: assets.Trong,
+      fullName: "Nguyễn Hoài Nam",
+      sid: "20225653",
+      img: assets.Nam,
       role: "Backend Team",
     },
     {
-      fullName: "Từ Minh Tuân",
-      sid: "20225422",
-      img: assets.Tuan,
-      role: "Frontend Team",
+      fullName: "Bùi Quốc Bảo",
+      sid: "20225601",
+      img: assets.Bao,
+      role: "Database Team",
     },
     {
-      fullName: "Trương Ngọc Hải",
-      sid: "20225309",
-      img: assets.Hai,
+      fullName: "Đặng Kim Ngân",
+      sid: "20225751",
+      img: assets.Ngan,
       role: "Frontend Team",
     },
-    {
-      fullName: "Trần Trọng Nguyên",
-      sid: "20225216",
-      img: assets.Nguyen,
-      role: "Frontend Team",
-    },
+
   ];
 
   const settings: Settings = {

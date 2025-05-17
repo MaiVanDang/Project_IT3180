@@ -12,12 +12,11 @@ import rest_api from './restapi.png'
 import java from './java.png'
 import typescript from './typescript.webp'
 import about_us from './aboutus.png'
-import Hung from './Hung.jpg'
-import Huy from './Huy.jpg'
-import Tuan from './Tuan.jpg'
-import Trong from './Trong.jpg'
-import Hai from './Hai.jpg'
-import Nguyen from './Nguyen.jpg'
+import Dang from './Dang.jpg'
+import Bao from './Bao.jpg'
+import Nam from './Nam.jpg'
+import Nghia from './Nghia.jpg'
+import Ngan from './Ngan.png'
 import tailwind from './tailwind.png'
 import docker from './docker.png'
 
@@ -36,12 +35,11 @@ export const assets = {
     java,
     typescript,
     about_us,
-    Tuan,
-    Hai,
-    Huy,
-    Hung,
-    Trong,
-    Nguyen,
+    Dang,
+    Bao,
+    Nam,
+    Nghia,
+    Ngan,
     tailwind,
     docker,
 }
