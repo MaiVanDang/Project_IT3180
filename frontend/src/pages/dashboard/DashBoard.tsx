@@ -1,4 +1,4 @@
-import "./DashBoard.css";
+import "./dashboard.css";
 import Apartments from "./mainContent/Apartment";
 import FeesAndFunds from "./mainContent/FeesAndFunds";
 import Overview from "./mainContent/Overview";

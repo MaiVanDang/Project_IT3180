@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { assets } from "../../../assets/assets";
 import TechMarquee from "../partials/TechMarquee";
-import "./home.css";
+import "./Home.css";
 import Typed from "typed.js";
 
 const Home = () => {
@@ -24,7 +24,7 @@ const Home = () => {
   const handleSmoothScroll = (event: any) => {
     event.preventDefault();
     const targetId = event.target.getAttribute("href").slice(1);
-    const targetElement : any = document.getElementById(targetId);
+    const targetElement: any = document.getElementById(targetId);
 
     targetElement.scrollIntoView({
       behavior: "smooth",
