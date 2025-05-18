@@ -35,9 +35,10 @@ public class ResidentService {
     ApartmentRepository apartmentRepository;
 
     public PaginatedResponse<Resident> fetchAllResidents(Specification<Resident> spec, Pageable pageable) {
-        //Page<Resident> pageResident = this.residentRepository.findAll(spec, pageable);
-        Specification<Resident> notMovedSpec = (root, query, criteriaBuilder) ->
-                criteriaBuilder.notEqual(root.get("status"), ResidentEnum.Moved);
+        // Page<Resident> pageResident = this.residentRepository.findAll(spec,
+        // pageable);
+        Specification<Resident> notMovedSpec = (root, query, criteriaBuilder) -> criteriaBuilder
+                .notEqual(root.get("status"), ResidentEnum.Moved);
 
         Specification<Resident> combinedSpec = spec == null ? notMovedSpec : spec.and(notMovedSpec);
 
@@ -66,48 +67,74 @@ public class ResidentService {
     @Transactional
     public Resident fetchResidentById(Long id) throws RuntimeException {
         return this.residentRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Resident with id = "+id+ " is not found"));
+                .orElseThrow(() -> new RuntimeException("Resident with id = " + id + " is not found"));
     }
 
     @Transactional
     public Resident createResident(ResidentCreateRequest resident) throws RuntimeException {
-        if (this.residentRepository.findById(resident.getId()).isPresent()) {
-            throw new RuntimeException("Resident with id = " + resident.getId() + " already exists");
+
+        // System.out.println("Residenttest0: " + resident.getName());
+        // System.out.println("Residenttest0: " + resident.getDob());
+        // System.out.println("Residenttest0: " + resident.getGender());
+        // System.out.println("Residenttest0: " + resident.getCic());
+        // System.out.println("Residenttest0: " + resident.getStatus());
+        // System.out.println("Residenttest0: " + resident.getApartmentId());
+
+        if (this.residentRepository.findById(Long.parseLong(resident.getCic())).isPresent()) {
+            throw new RuntimeException("Resident with id = " + resident.getCic() + " already exists");
         }
 
-        if(resident.getAddressNumber() != null) {
-            Apartment apartment = apartmentRepository.findById(resident.getAddressNumber())
-                    .orElseThrow(() -> new RuntimeException("Apartment with id = " + resident.getAddressNumber() + " does not exist"));
+        Resident resident1;
+        // System.out.println("Residenttest1: " + resident.getName());
+        // System.out.println("Residenttest1: " + resident.getDob());
+        // System.out.println("Residenttest1: " + resident.getGender());
+        // System.out.println("Residenttest1: " + resident.getCic());
+        // System.out.println("Residenttest1: " + resident.getStatus());
+        // System.out.println("Residenttest1: " + resident.getApartmentId());
+
+        if (resident.getApartmentId() != 0) {
+            Apartment apartment = apartmentRepository.findById(resident.getApartmentId())
+                    .orElseThrow(() -> new RuntimeException(
+                            "Apartment with id = " + resident.getApartmentId() + " does not exist"));
             List<Resident> residentList = apartment.getResidentList();
 
-            Resident resident1 = Resident.builder()
-                    .id(resident.getId())
+            resident1 = Resident.builder()
+                    .id(Long.parseLong(resident.getCic()))
                     .name(resident.getName())
                     .dob(resident.getDob())
                     .gender(resident.getGender())
                     .cic(resident.getCic())
+                    .apartment(apartment)
                     .status(ResidentEnum.fromString(resident.getStatus()))
                     .build();
+
+            // Set the apartmentId transient field to match the relationship
+            resident1.setApartmentId(apartment.getAddressNumber());
+
             // Synchronize
             residentList.add(resident1);
             apartment.setResidentList(residentList);
             apartmentRepository.save(apartment);
-            resident1.setApartment(apartment);
-            resident1.setIsActive(1);
-
-            return this.residentRepository.save(resident1);
-        }
-        else {
-            Resident resident1 = Resident.builder()
-                    .id(resident.getId())
+        } else {
+            resident1 = Resident.builder()
+                    .id(Long.parseLong(resident.getCic()))
                     .name(resident.getName())
                     .dob(resident.getDob())
                     .gender(resident.getGender())
                     .cic(resident.getCic())
-                    .status(ResidentEnum.fromString(resident.getStatus()))
                     .apartment(null)
+                    .status(ResidentEnum.fromString(resident.getStatus()))
                     .build();
+        }
+
+        // The @PrePersist will automatically set isActive=1, but we can set it
+        // explicitly too
+        resident1.setIsActive(1);
+
+        try {
             return this.residentRepository.save(resident1);
+        } catch (Exception e) {
+            throw new RuntimeException("Error saving resident: " + e.getMessage());
         }
     }
 
@@ -115,8 +142,10 @@ public class ResidentService {
     public Resident updateResident(ResidentUpdateRequest resident) throws Exception {
         Resident oldResident = this.fetchResidentById(resident.getId());
         if (oldResident != null) {
-            if (resident.getName() != null) oldResident.setName(resident.getName());
-            if (resident.getDob() != null) oldResident.setDob(resident.getDob());
+            if (resident.getName() != null)
+                oldResident.setName(resident.getName());
+            if (resident.getDob() != null)
+                oldResident.setDob(resident.getDob());
             if (resident.getStatus() != null) {
                 oldResident.setStatus(ResidentEnum.fromString(resident.getStatus()));
             }
@@ -128,7 +157,8 @@ public class ResidentService {
             }
             if (resident.getAddressNumber() != null) {
                 Apartment newApartment = apartmentRepository.findById(resident.getAddressNumber())
-                        .orElseThrow(() -> new RuntimeException("Apartment with address number " + resident.getAddressNumber() + " not found"));
+                        .orElseThrow(() -> new RuntimeException(
+                                "Apartment with address number " + resident.getAddressNumber() + " not found"));
                 List<Resident> residentList = newApartment.getResidentList();
                 residentList.add(oldResident);
                 newApartment.setResidentList(residentList);
@@ -146,7 +176,8 @@ public class ResidentService {
         Resident resident = this.fetchResidentById(id);
         resident.setIsActive(0);
         if (resident.getApartment() != null) {
-            Apartment apartment = apartmentRepository.findById(resident.getApartmentId()).orElseThrow(() -> new RuntimeException("Apartment with id " + resident.getApartmentId() + " not found"));
+            Apartment apartment = apartmentRepository.findById(resident.getApartmentId()).orElseThrow(
+                    () -> new RuntimeException("Apartment with id " + resident.getApartmentId() + " not found"));
             List<Resident> residentList = apartment.getResidentList();
             residentList.remove(resident);
             apartment.setResidentList(residentList);

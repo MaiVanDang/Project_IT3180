@@ -21,7 +21,7 @@ export default function ResidentForm({ resident, onCloseModal }: any) {
   const statusOptions = ["Resident", "Moved", "Temporary", "Absent"];
   const genderOptions = ["Male", "Female"];
 
-  const   handleChange = (e: any) => {
+  const handleChange = (e: any) => {
     const { id, value } = e.target;
     setFormValues((prevValues) => ({
       ...prevValues,
@@ -33,14 +33,14 @@ export default function ResidentForm({ resident, onCloseModal }: any) {
     e.preventDefault();
     
     const data = {
-      id: formValues.id,
+      cic: formValues.id,
       name: formValues.name,
       dob: formValues.dob,
-      apartmentId: formValues.apartmentId,
+      apartmentId: formValues.apartmentId ? Number(formValues.apartmentId) : 0,
       status: formValues.status,
       gender: formValues.gender
     }
-    // console.log(data);  
+    console.log(data);  
 
     try {
       const response = await axios.post(
@@ -48,14 +48,43 @@ export default function ResidentForm({ resident, onCloseModal }: any) {
         data
       );
 
-      toast.success(`Add Resident Successfull!`);
+      toast.success(`Thêm cư dân thành công!`);
+
+      if (onCloseModal) {
+        onCloseModal();
+      }
 
       setTimeout(() => {
         window.location.reload();
       }, 1000);
 
-    } catch (err) {
-      toast.error("Có lỗi xảy ra!!");
+    } catch (err: any) {
+      // Xử lý lỗi chi tiết từ backend
+      if (err.response) {
+        // Có phản hồi từ server
+        const errorData = err.response.data;
+        
+        switch (err.response.status) {
+          case 409: // Conflict - Resource Already Exists
+            toast.error(`Lỗi: ${errorData.message}`);
+            break;
+          case 404: // Not Found - Apartment Not Found
+            toast.error(`Lỗi: ${errorData.message}`);
+            break;
+          case 400: // Bad Request - Validation Error
+            toast.error(`Lỗi: ${errorData.message}`);
+            break;
+          default:
+            toast.error(`Lỗi: ${errorData.message || "Có lỗi xảy ra, vui lòng thử lại sau"}`);
+        }
+      } else if (err.request) {
+        // Không nhận được phản hồi từ server
+        toast.error("Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối của bạn!");
+      } else {
+        // Lỗi khi thiết lập request
+        toast.error("Đã xảy ra lỗi khi gửi yêu cầu!");
+      }
+      console.error("Chi tiết lỗi:", err);
     }
   };
 
@@ -63,47 +92,73 @@ export default function ResidentForm({ resident, onCloseModal }: any) {
     try {
       console.log(formValues.id);
       const response = await axios.delete(`http://localhost:8080/api/v1/residents/${formValues.id}`)
-      // console.log(response.data);
+      
+      toast.success("Xóa cư dân thành công");
+      
+      if (onCloseModal) {
+        onCloseModal();
+      }
+      
       setTimeout(() => {
         window.location.reload();
       }, 1000);
-      toast.success("Delete successful");
-    } catch (err) {
-      toast.error("Có lỗi xảy ra!!")
-      console.error(err);
+    } catch (err: any) {
+      // Xử lý lỗi chi tiết từ backend
+      if (err.response) {
+        const errorData = err.response.data;
+        toast.error(`Lỗi: ${errorData.message || "Không thể xóa cư dân"}`);
+      } else if (err.request) {
+        toast.error("Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối của bạn!");
+      } else {
+        toast.error("Đã xảy ra lỗi khi gửi yêu cầu!");
+      }
+      console.error("Chi tiết lỗi:", err);
     }
   }
+
+  // Kiểm tra dữ liệu trước khi submit
+  const isFormValid = () => {
+    return (
+      formValues.name.trim() !== "" &&
+      formValues.dob !== "" &&
+      formValues.id.trim() !== "" &&
+      formValues.gender !== ""
+    );
+  };
 
   return (
     <Form width="400px">
       <div>
-        <label>Information:</label>
+        <label>Thông tin cư dân:</label>
         <Form.Fields>
           <FormField>
-            <FormField.Label label={"Name"} />
+            <FormField.Label label={"Họ tên"} />
             <FormField.Input
               id="name"
               type="name"
               value={formValues.name}
               onChange={handleChange}
+              required
             />
           </FormField>
           <FormField>
-            <FormField.Label label={"DOB"} />
+            <FormField.Label label={"Ngày sinh"} />
             <FormField.Input
               id="dob"
               type="date"
               value={formValues.dob}
               onChange={handleChange}
+              required
             />
           </FormField>
           <FormField>
-            <FormField.Label label={"CCCD"} />
+            <FormField.Label label={"CCCD/CMND"} />
             <FormField.Input
               id="id"
               type="text"
               value={formValues.id}
               onChange={handleChange}
+              required
             />
           </FormField>
           <Selector
@@ -111,25 +166,26 @@ export default function ResidentForm({ resident, onCloseModal }: any) {
             onChange={handleChange}
             id="gender"
             options={genderOptions}
-            label={"Gender:"}
+            label={"Giới tính:"}
           ></Selector>
         </Form.Fields>
       </div>
       <div>
-        <label>Room:</label>
+        <label>Thông tin căn hộ:</label>
         <Form.Fields>
           <FormField>
-            <FormField.Label label={"Room"} />
+            <FormField.Label label={"Mã căn hộ"} />
             <FormField.Input
               id="apartmentId"
               type="search"
               value={formValues.apartmentId}
               onChange={handleChange}
+              placeholder="Để trống nếu không thuộc căn hộ nào"
             />
           </FormField>
 
           <FormField>
-            <FormField.Label label={"Status"} />
+            <FormField.Label label={"Trạng thái"} />
             <FormField.Select
               id="status"
               options={statusOptions}
@@ -142,14 +198,19 @@ export default function ResidentForm({ resident, onCloseModal }: any) {
 
       {resident ? (
         <Form.Buttons>
-          <Button type="button" onClick={handleDelete} variation="danger" size="medium">
-            Delete
+          <Button 
+            type="button" 
+            onClick={handleDelete} 
+            variation="danger" 
+            size="medium"
+          >
+            Xóa
             <span>
               <HiTrash />
             </span>
           </Button>
           {/* <Button type="button" variation="secondary" size="medium">
-            Update
+            Cập nhật
             <span>
               <HiPencil />
             </span>
@@ -162,8 +223,9 @@ export default function ResidentForm({ resident, onCloseModal }: any) {
             size="medium"
             variation="primary"
             type="submit"
+            disabled={!isFormValid()}
           >
-            Add
+            Thêm
             <span>
               <HiOutlinePlusCircle />
             </span>

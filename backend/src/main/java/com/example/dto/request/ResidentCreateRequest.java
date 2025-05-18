@@ -19,4 +19,5 @@ public class ResidentCreateRequest {
     String cic;
     String status;
     Long addressNumber;
+    long apartmentId;
 }
