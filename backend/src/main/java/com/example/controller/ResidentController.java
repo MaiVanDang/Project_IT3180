@@ -24,11 +24,11 @@ import com.turkraft.springfilter.boot.Filter;
 public class ResidentController {
     private final ResidentService residentService;
 
-    //fetch all residents
+    // fetch all residents
     @GetMapping()
     public ResponseEntity<PaginatedResponse<Resident>> getAllResidents(@Filter Specification<Resident> spec,
-                                                                       @RequestParam(value = "page", defaultValue = "1") int page,
-                                                                       @RequestParam(value = "size", defaultValue = "10") int size) {
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page - 1, size);
         PaginatedResponse<Resident> residentResponses = this.residentService.fetchAllResidents(spec, pageable);
         return ResponseEntity.status(HttpStatus.OK).body(residentResponses);
@@ -36,35 +36,35 @@ public class ResidentController {
 
     @GetMapping("/all")
     public ResponseEntity<PaginatedResponse<Resident>> getAll(@Filter Specification<Resident> spec,
-                                                                       @RequestParam(value = "page", defaultValue = "1") int page,
-                                                                       @RequestParam(value = "size", defaultValue = "10") int size) {
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page - 1, size);
         PaginatedResponse<Resident> residentResponses = this.residentService.fetchAll(spec, pageable);
         return ResponseEntity.status(HttpStatus.OK).body(residentResponses);
     }
 
-    //fetch resident by id
+    // fetch resident by id
     @GetMapping("/{id}")
     public ResponseEntity<Resident> getResidentById(@PathVariable("id") long id) throws Exception {
         Resident fetchResident = this.residentService.fetchResidentById(id);
         return ResponseEntity.status(HttpStatus.OK).body(fetchResident);
     }
 
-    //Create new resident
+    // Create new resident
     @PostMapping()
-    public ResponseEntity<Resident> createNewUser(@Valid @RequestBody ResidentCreateRequest apiResident) throws Exception {
+    public ResponseEntity<Resident> createNewUser(@Valid @RequestBody ResidentCreateRequest apiResident) {
         Resident resident = this.residentService.createResident(apiResident);
-        return ResponseEntity.status(HttpStatus.CREATED).body(resident);
+        return new ResponseEntity<>(resident, HttpStatus.CREATED);
     }
 
-    //Delete resident by id
+    // Delete resident by id
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<String>> deleteResident(@PathVariable("id") long id) throws Exception {
         ApiResponse<String> response = this.residentService.deleteResident(id);
         return ResponseEntity.ok(response);
     }
 
-    //Update resident
+    // Update resident
     @PutMapping()
     public ResponseEntity<Resident> updateUser(@RequestBody ResidentUpdateRequest apiResident) throws Exception {
         Resident resident = this.residentService.updateResident(apiResident);
