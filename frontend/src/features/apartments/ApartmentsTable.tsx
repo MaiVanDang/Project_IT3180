@@ -59,12 +59,12 @@ export default function ApartmentsTable({keyword}: ApartmentsTableProps) {
   return (
     <Table columns="1.5fr 2fr 2fr 1.5fr 1.2fr 1.2fr">
       <Table.Header>
-        <div>Room</div>
-        <div>Owner Name</div>
-        <div>Contact</div>
-        <div>ResidentCount</div>
-        <div>Status</div>
-        <div>Actions</div>
+        <div>Số phòng</div>
+        <div>Chủ hộ</div>
+        <div>Sđt</div>
+        <div>Số lượng thành viên</div>
+        <div>Trạng thái</div>
+        <div></div>
       </Table.Header>
 
       {apartments.map((apartment: any) => (

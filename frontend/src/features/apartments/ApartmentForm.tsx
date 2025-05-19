@@ -53,6 +53,7 @@ export default function ApartmentForm({
     apartment?.residentList || []
   );
   const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -94,10 +95,87 @@ export default function ApartmentForm({
     }));
   };
 
+  const validateUpdateForm = () => {
+    const newErrors: {[key: string]: string} = {};
+    
+    // Validation specifically for update - only validate fields that can be updated
+    if (!formValues.area) {
+      newErrors.area = "Vui lòng nhập diện tích";
+    } else if (isNaN(Number(formValues.area))) {
+      newErrors.area = "Diện tích phải là số";
+    }
+    
+    if (!formValues.status) {
+      newErrors.status = "Vui lòng chọn trạng thái";
+    }
+    
+    if (!formValues.ownerId) {
+      newErrors.ownerId = "Vui lòng nhập ID chủ hộ";
+    }
+    
+    if (!formValues.ownerPhone) {
+      newErrors.ownerPhone = "Vui lòng nhập số điện thoại";
+    }
+    
+    // Set errors to state
+    setErrors(newErrors);
+    console.log("Update validation errors:", newErrors);
+    
+    // Return validation result
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const extractErrorMessage = (err: any): string => {
+    let errorMessage = "Đã có lỗi xảy ra";
+    
+    if (err.response) {
+      const errorData = err.response.data;
+      console.log("Error response structure:", errorData);
+      
+      // Extract error message from response
+      if (typeof errorData === 'string') {
+        errorMessage = errorData;
+      } 
+      else if (errorData && typeof errorData === 'object') {
+        // Extract error message in priority order
+        errorMessage = errorData.message || 
+                      errorData.error || 
+                      (errorData.errors && Array.isArray(errorData.errors) ? errorData.errors.join(", ") : errorData.detail) || 
+                      JSON.stringify(errorData);
+      }
+      
+      // Check for specific error messages from updateResident method
+      if (errorMessage.includes("is not found")) {
+        // Resident not found error
+        return `Không tìm thấy cư dân: ${errorMessage}`;
+      } else if (errorMessage.includes("Apartment with address number") && errorMessage.includes("not found")) {
+        // Apartment not found error
+        return `Căn hộ không tồn tại: ${errorMessage}`;
+      } else if (errorMessage.includes("Error saving resident")) {
+        // General save error
+        return `Lỗi khi lưu thông tin cư dân: ${errorMessage.replace("Error saving resident: ", "")}`;
+      }
+      
+      console.error(`HTTP error ${err.response.status}: ${errorMessage}`);
+    } else if (err.request) {
+      errorMessage = "Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối của bạn!";
+      console.error("No response received:", err.request);
+    } else {
+      console.error("Error setting up request:", err.message);
+    }
+    
+    return errorMessage;
+  };
+
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm()) return;
+    if (!validateUpdateForm()) {
+      console.log("Form validation failed", errors);
+      return;
+    }
+    
+    setIsSubmitting(true);
     
     try {
       const data = {
@@ -114,16 +192,36 @@ export default function ApartmentForm({
         data
       );
 
-      toast.success("Update Successful");
+      toast.success("Cập nhật thành công");
       
-      // Refresh apartment list
-      fetchApartments();
+      // Kiểm tra fetchApartments tồn tại và là hàm trước khi gọi
+      if (typeof fetchApartments === 'function') {
+        try {
+          fetchApartments();
+        } catch (fetchError) {
+          console.error("Error refreshing apartment list:", fetchError);
+        }
+      } else {
+        console.log("fetchApartments is not available or not a function, skipping refresh");
+      }
       
       setTimeout(() => {
         window.location.reload();
       }, 1500);
     } catch (err) {
-      toast.error("Có lỗi xảy ra");
+      const errorMessage = extractErrorMessage(err);
+      toast.error(errorMessage);
+      
+      // If there are field-specific errors, update the errors state
+      if (err.response?.data?.fieldErrors) {
+        const fieldErrors = err.response.data.fieldErrors;
+        setErrors(prev => ({
+          ...prev,
+          ...fieldErrors
+        }));
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -135,6 +233,8 @@ export default function ApartmentForm({
       console.log("Form validation failed", errors);
       return;
     }
+    
+    setIsSubmitting(true);
     
     // Create apartment data object
     const apartmentData = {
@@ -155,7 +255,7 @@ export default function ApartmentForm({
       );
       
       console.log("Response success:", response.data);
-      toast.success("Add Apartment Successful");
+      toast.success("Thêm căn hộ thành công");
       
       // Reset form
       setFormValues({
@@ -169,8 +269,16 @@ export default function ApartmentForm({
       });
       setSelectedResidents([]);
       
-      // Refresh apartment list
-      fetchApartments();
+      // Kiểm tra fetchApartments tồn tại và là hàm trước khi gọi
+      if (typeof fetchApartments === 'function') {
+        try {
+          fetchApartments();
+        } catch (fetchError) {
+          console.error("Error refreshing apartment list:", fetchError);
+        }
+      } else {
+        console.log("fetchApartments is not available or not a function, skipping refresh");
+      }
       
       // Delay reload if needed
       setTimeout(() => {
@@ -179,34 +287,19 @@ export default function ApartmentForm({
     } catch (err: any) {
       console.error("Error details:", err);
       
-      // Ensure error toast always displays, even without response from server
-      let errorMessage = "Đã có lỗi xảy ra khi thêm căn hộ";
-      
-      if (err.response) {
-        const errorData = err.response.data;
-        console.log("Error response structure:", errorData);
-        
-        // Extract error message from response
-        if (typeof errorData === 'string') {
-          errorMessage = errorData;
-        } 
-        else if (errorData && typeof errorData === 'object') {
-          // Extract error message in priority order
-          errorMessage = errorData.message || 
-                        errorData.error || 
-                        (errorData.errors && Array.isArray(errorData.errors) ? errorData.errors.join(", ") : errorData.detail) || 
-                        JSON.stringify(errorData);
-        }
-        
-        console.error(`HTTP error ${err.response.status}: ${errorMessage}`);
-      } else if (err.request) {
-        errorMessage = "Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối của bạn!";
-        console.error("No response received:", err.request);
-      } else {
-        console.error("Error setting up request:", err.message);
-      }
-      
+      const errorMessage = extractErrorMessage(err);
       toast.error(errorMessage);
+      
+      // If there are field-specific errors, update the errors state
+      if (err.response?.data?.fieldErrors) {
+        const fieldErrors = err.response.data.fieldErrors;
+        setErrors(prev => ({
+          ...prev,
+          ...fieldErrors
+        }));
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -250,10 +343,10 @@ export default function ApartmentForm({
 
   return (
     <Form width="800px">
-      <label>Room:</label>
+      <label>Căn hộ:</label>
       <Form.Fields type="horizontal">
         <FormField>
-          <FormField.Label label="Room" />
+          <FormField.Label label="Căn hộ số" />
           <FormField.Input
             id="addressNumber"
             type="text"
@@ -262,12 +355,12 @@ export default function ApartmentForm({
             required
             disabled={!!apartment} // Disable if editing existing apartment
           />
-          {errors.addressNumber && (
+          {!apartment && errors.addressNumber && (
             <p className="text-red-500 text-sm mt-1">{errors.addressNumber}</p>)}
         </FormField>
 
         <FormField>
-          <FormField.Label label="Room Area" />
+          <FormField.Label label="Diện tích" />
           <FormField.Input
             id="area"
             type="text"
@@ -286,16 +379,16 @@ export default function ApartmentForm({
         value={formValues.status}
         onChange={handleChange}
         options={statusOptions}
-        label="Status"
+        label="Trạng thái"
       />
       {errors.status && (
         <p className="text-red-500 text-sm mt-1">{errors.status}</p>
       )}
 
-      <label>Owner:</label>
+      <label>Chủ hộ:</label>
       <Form.Fields type="horizontal">
         <FormField>
-          <FormField.Label label="Owner ID" />
+          <FormField.Label label="CCCD" />
           <FormField.Input
             id="ownerId"
             type="text"
@@ -308,7 +401,7 @@ export default function ApartmentForm({
           )}
         </FormField>
         <FormField>
-          <FormField.Label label="Phone:" />
+          <FormField.Label label="Sđt" />
           <FormField.Input
             id="ownerPhone"
             type="text"
@@ -322,11 +415,11 @@ export default function ApartmentForm({
         </FormField>
       </Form.Fields>
 
-      <label>Resident:</label>
+      <label>Thành viên:</label>
       <Table columns="1fr 1fr">
         <Table.Header size="small">
-          <div>Name</div>
-          <div>DOB</div>
+          <div>Tên</div>
+          <div>Ngày sinh</div>
         </Table.Header>
         {selectedResidents.map((resident) => (
           <Table.Row size="small" key={resident.id}>
@@ -338,7 +431,12 @@ export default function ApartmentForm({
 
       <Modal>
         <Modal.Open id="openAddResident">
-          <i className="bx bx-plus-circle"></i>
+          <Button type="button" variation="secondary" size="small">
+            Thêm thành viên
+            <span>
+              <HiOutlinePlusCircle />
+            </span>
+          </Button>
         </Modal.Open>
 
         <Modal.Window id="openAddResident" name="Add Residents">
@@ -348,11 +446,11 @@ export default function ApartmentForm({
       
       {apartment?.vehicleList && (
         <>
-          <label>Vehicle:</label>
+          <label>Phương tiện:</label>
           <Table columns="1fr 1fr">
             <Table.Header size="small">
-              <div>Number</div>
-              <div>Type</div>
+              <div>Biển số xe</div>
+              <div>Loại xe</div>
             </Table.Header>
             {apartment.vehicleList.map((vehicle) => (
               <Table.Row size="small" key={vehicle.id}>
@@ -364,6 +462,13 @@ export default function ApartmentForm({
         </>
       )}
 
+      {/* Hiển thị lỗi chung nếu có */}
+      {errors.general && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          {errors.general}
+        </div>
+      )}
+
       {/* Action Buttons */}
       {apartment ? (
         <Form.Buttons>
@@ -372,8 +477,9 @@ export default function ApartmentForm({
             type="button"
             variation="secondary"
             size="medium"
+            disabled={isSubmitting}
           >
-            Update
+            {isSubmitting ? "Đang xử lý..." : "Cập nhật"}
             <span>
               <HiPencil />
             </span>
@@ -394,8 +500,9 @@ export default function ApartmentForm({
             type="button"
             size="medium"
             variation="primary"
+            disabled={isSubmitting}
           >
-            Add
+            {isSubmitting ? "Đang xử lý..." : "Lưu"}
             <span>
               <HiOutlinePlusCircle />
             </span>
