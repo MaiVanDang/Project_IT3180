@@ -4,53 +4,56 @@ import Table from "../../components/Table";
 import Pagination from "../../components/Pagination";
 import ApartmentRow from "./ApartmentRow";
 
-const PAGE_SIZE = 5;
-
 interface ApartmentsTableProps {
   keyword: string;
+  filterString?: string;
 }
 
+const PAGE_SIZE = 10;
 
-export default function ApartmentsTable({keyword}: ApartmentsTableProps) {
+export default function ApartmentsTable({ keyword, filterString = "" }: ApartmentsTableProps) {
   const [apartments, setApartments] = useState<any[]>([]);
   const [totalPages, setTotalPages] = useState<number>(0);
   const [totalElements, setTotalElements] = useState<number>(0);
   const [curPage, setCurPage] = useState<number>(1);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const apiApartments = async (page: number = 1) => {
+  const fetchApartments = async (page: number = 1) => {
     try {
-      let url: string;
-      if(keyword) {
-        url= `http://localhost:8080/api/v1/apartments/${keyword}`
+      setIsLoading(true);
+
+      let filter = "";
+      if (filterString) {
+        filter = filterString;
+      } else if (keyword) {
+        filter = `addressNumber~'*${keyword}*'`;
       }
-      else {
-        url= `http://localhost:8080/api/v1/apartments?page=${page}&size=${PAGE_SIZE}`
-      }
+
+      const url = `http://localhost:8080/api/v1/apartments?size=${PAGE_SIZE}&page=${page}${filter ? `&filter=${filter}` : ""}`;
       const response = await axios.get(url);
 
-      if(keyword) {
-        
-        setApartments([response.data.data]);
-        setTotalPages(1);
-        setTotalElements(1);
-      }
-      else {
-        
-        setApartments(response.data.data.result);
-        setTotalPages(response.data.data.totalPages);
-        setTotalElements(response.data.data.totalElements);
-      }
-      
+      const data = response.data.data;
+      setApartments(data.result);
+      setTotalPages(data.totalPages);
+      setTotalElements(data.totalElements);
     } catch (error) {
-      console.error("Error fetching apartments:", error);
+      console.error("Lỗi khi lấy danh sách căn hộ:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    apiApartments(curPage);
-    console.log(keyword);
-    
-  }, [curPage, keyword]);
+    if (curPage !== 1) {
+      setCurPage(1); // reset lại page về 1 khi filter hoặc keyword thay đổi
+    } else {
+      fetchApartments(1);
+    }
+  }, [keyword, filterString]);
+
+  useEffect(() => {
+    fetchApartments(curPage);
+  }, [curPage]);
 
   const handlePageChange = (page: number) => {
     setCurPage(page);
@@ -61,15 +64,31 @@ export default function ApartmentsTable({keyword}: ApartmentsTableProps) {
       <Table.Header>
         <div>Số phòng</div>
         <div>Chủ hộ</div>
-        <div>Sđt</div>
+        <div>Số điện thoại</div>
         <div>Số lượng thành viên</div>
         <div>Trạng thái</div>
-        <div></div>
+        <div>Hành động</div>
       </Table.Header>
 
-      {apartments.map((apartment: any) => (
-        <ApartmentRow key={apartment.addressNumber} apartment={apartment} />
-      ))}
+      {isLoading ? (
+        <Table.Row>
+          <div style={{ gridColumn: "1 / -1", textAlign: "center" }}>Đang tải...</div>
+        </Table.Row>
+      ) : apartments.length > 0 ? (
+        apartments.map((apartment, index) => (
+          <ApartmentRow
+            key={apartment.id}
+            apartment={apartment}
+            index={(curPage - 1) * PAGE_SIZE + index + 1}
+          />
+        ))
+      ) : (
+        <Table.Row>
+          <div style={{ gridColumn: "1 / -1", textAlign: "center" }}>
+            Không tìm thấy căn hộ nào phù hợp
+          </div>
+        </Table.Row>
+      )}
 
       <Table.Footer>
         <Pagination
