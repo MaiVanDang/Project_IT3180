@@ -88,6 +88,61 @@ export default function ResidentForm({ resident, onCloseModal }: any) {
     }
   };
 
+  const handleUpdateResident = async () => {
+    try {
+      // Tạo đối tượng dữ liệu để cập nhật
+      const updateData = {
+        id: Number(formValues.id), // Đảm bảo id là số
+        name: formValues.name,
+        dob: formValues.dob,
+        apartmentId: formValues.apartmentId ? Number(formValues.apartmentId) : 0,
+        status: formValues.status,
+        gender: formValues.gender,
+        cic: formValues.cic || formValues.id // Sử dụng cic nếu có, nếu không thì dùng id
+      };
+      
+      console.log("Dữ liệu cập nhật:", updateData);
+      
+      // Gửi request PUT đến endpoint update
+      const response = await axios.put(
+        "http://localhost:8080/api/v1/residents",
+        updateData
+      );
+      
+      toast.success("Cập nhật cư dân thành công!");
+      
+      if (onCloseModal) {
+        onCloseModal();
+      }
+      
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+      
+    } catch (err: any) {
+      // Xử lý lỗi chi tiết từ backend
+      if (err.response) {
+        const errorData = err.response.data;
+        
+        switch (err.response.status) {
+          case 404: // Not Found
+            toast.error(`Lỗi: ${errorData.message || "Không tìm thấy cư dân"}`);
+            break;
+          case 400: // Bad Request - Validation Error
+            toast.error(`Lỗi: ${errorData.message || "Dữ liệu không hợp lệ"}`);
+            break;
+          default:
+            toast.error(`Lỗi: ${errorData.message || "Có lỗi xảy ra khi cập nhật cư dân"}`);
+        }
+      } else if (err.request) {
+        toast.error("Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối của bạn!");
+      } else {
+        toast.error("Đã xảy ra lỗi khi gửi yêu cầu!");
+      }
+      console.error("Chi tiết lỗi:", err);
+    }
+  };
+
   const handleDelete = async () => {
     try {
       console.log(formValues.id);
@@ -209,12 +264,18 @@ export default function ResidentForm({ resident, onCloseModal }: any) {
               <HiTrash />
             </span>
           </Button>
-          {/* <Button type="button" variation="secondary" size="medium">
+          <Button 
+            onClick={handleUpdateResident}
+            type="button" 
+            variation="secondary"  
+            size="medium"
+            // disabled={!isFormValid()}
+          >
             Cập nhật
             <span>
               <HiPencil />
             </span>
-          </Button> */}
+          </Button>
         </Form.Buttons>
       ) : (
         <Form.Buttons>

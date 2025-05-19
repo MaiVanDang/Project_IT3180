@@ -1,4 +1,4 @@
-import Search from "./Search";
+// import Search from "./Search";
 import styled from "styled-components";
 import Add from "./Add";
 
@@ -13,7 +13,7 @@ export default function AddAndSearch({ children, title, setKeyword, keyword }) {
   return (
     <AddAndSearchStyled>
       <Add title={title}>{children}</Add>
-      <Search setKeyword={setKeyword} keyword={keyword}/>
+      {/* <Search setKeyword={setKeyword} keyword={keyword}/> */}
     </AddAndSearchStyled>
   );
 }
