@@ -10,7 +10,7 @@ export default function Apartments() {
   return (
     <>
       <Row type="horizontal">
-        <Heading as="h1">Apartments Management</Heading>
+        <Heading as="h1">Quản lý căn hộ</Heading>
         <AddAndSearch title="Add Appartment" setKeyword={setKeyword} keyword={keyword}>
           <ApartmentForm />
         </AddAndSearch>
