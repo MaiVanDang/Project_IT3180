@@ -168,7 +168,12 @@ public class ResidentService {
         } else {
             throw new Exception("Resident with id = " + resident.getId() + " is not found");
         }
-        return this.residentRepository.save(oldResident);
+
+        try {
+            return this.residentRepository.save(oldResident);
+        } catch (Exception e) {
+            throw new RuntimeException("Error saving resident: " + e.getMessage());
+        }
     }
 
     @Transactional

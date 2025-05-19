@@ -51,6 +51,8 @@ public class ApartmentController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Apartment> updateOne(@PathVariable Long id, @RequestBody ApartmentUpdateRequest request) {
+        System.out.println("Apartment ID: " + id);
+        System.out.println("Request: " + request);
         Apartment apartment = apartmentService.update(id, request);
         return ResponseEntity.status(HttpStatus.OK).body(apartment);
     }
