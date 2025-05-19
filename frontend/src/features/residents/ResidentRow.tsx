@@ -44,10 +44,10 @@ export default function ResidentRow({ resident, index }:{ resident: any; index: 
       </Tag>
       <Modal>
         <Modal.Open id="details">
-          <button>Details</button>
+          <button>Chi tiết</button>
         </Modal.Open>
 
-        <Modal.Window id="details" name="Resident Details">
+        <Modal.Window id="details" name="Thông tin cư dân">
           <ResidentForm resident={resident} />
         </Modal.Window>
       </Modal>

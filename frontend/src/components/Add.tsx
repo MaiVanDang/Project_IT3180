@@ -7,7 +7,7 @@ export default function Add({ children, title }) {
     <Modal>
       <Modal.Open id="add">
         <Button size="small" variation="primary">
-          Add
+          Thêm
           <span>
             <HiOutlinePlusCircle />
           </span>
