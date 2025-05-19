@@ -38,7 +38,7 @@ export default function ApartmentRow({ apartment }: ApartmentProps) {
       </Tag>
       <Modal>
         <Modal.Open id="details">
-          <button>Details</button>
+          <button>Chi tiết</button>
         </Modal.Open>
 
         <Modal.Window id="details" name="Apartment Details">
