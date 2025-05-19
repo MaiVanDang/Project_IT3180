@@ -39,9 +39,14 @@ public class ApartmentService {
 
     @Transactional
     public Apartment create(ApartmentCreateRequest request) {
-        if (this.apartmentRepository.findById(request.getAddressNumber()).isPresent()) {
-            throw new RuntimeException("Apartment with id = " + request.getAddressNumber() + " already exists");
+        if (this.apartmentRepository.findByOwner_Id(request.getOwnerId()).isPresent()) {
+            throw new RuntimeException("Apartment with id = " + request.getOwnerId() + " already exists");
         }
+        if (this.apartmentRepository.findById(request.getAddressNumber()).isEmpty()) {
+            throw new EntityExistsException(
+                    "Apartment with addressNumber = " + request.getAddressNumber() + " does not exist");
+        }
+
         var owner = residentService.fetchResidentById(request.getOwnerId());
 
         List<Resident> members = new ArrayList<>(residentRepository.findAllById(request.getMemberIds()));
@@ -51,7 +56,7 @@ public class ApartmentService {
         List<Long> foundMem = members.stream().map(Resident::getId).toList();
         List<Long> notFoundMem = foundMem.stream().filter(id -> !foundMem.contains(id)).toList();
 
-        if(!notFoundMem.isEmpty())
+        if (!notFoundMem.isEmpty())
             throw new EntityNotFoundException("Not found members " + notFoundMem);
 
         Apartment apartment = Apartment.builder()
@@ -64,19 +69,24 @@ public class ApartmentService {
                 .build();
 
         Apartment saved = apartmentRepository.save(apartment);
-        //Apartment test = apartmentRepository.findById(saved.getAddressNumber()).orElseThrow(() -> new RuntimeException("Failed to retrieve updated apartment"));
+        // Apartment test =
+        // apartmentRepository.findById(saved.getAddressNumber()).orElseThrow(() -> new
+        // RuntimeException("Failed to retrieve updated apartment"));
 
         members.forEach(member -> {
             member.setApartment(saved);
-            residentRepository.save(member);  // Sync changes for each member
+            residentRepository.save(member); // Sync changes for each member
         });
 
-        // Fetch the apartment with updated relationships
-        return saved;
+        try {
+            return saved;
+        } catch (Exception e) {
+            throw new RuntimeException("Error saving resident: " + e.getMessage());
+        }
     }
 
-    public PaginatedResponse<Apartment> getAll(Specification<Apartment> spec, Pageable pageable){
-        Page<Apartment> pageApartment = apartmentRepository.findAll(spec,pageable);
+    public PaginatedResponse<Apartment> getAll(Specification<Apartment> spec, Pageable pageable) {
+        Page<Apartment> pageApartment = apartmentRepository.findAll(spec, pageable);
         return PaginatedResponse.<Apartment>builder()
                 .pageSize(pageable.getPageSize())
                 .curPage(pageable.getPageNumber())
@@ -86,13 +96,13 @@ public class ApartmentService {
                 .build();
     }
 
-    public Apartment getDetail(Long id){
+    public Apartment getDetail(Long id) {
         return apartmentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Can not find apartment with address: " + id));
     }
 
     @Transactional
-    public Apartment update(Long addressID, ApartmentUpdateRequest request){
+    public Apartment update(Long addressID, ApartmentUpdateRequest request) {
         Apartment apartment = apartmentRepository.findById(addressID)
                 .orElseThrow(() -> new EntityNotFoundException("Not found apartment " + addressID));
 
@@ -113,9 +123,12 @@ public class ApartmentService {
             newOwner.setApartment(apartment);
             residentRepository.save(newOwner); // Sync changes for the new owner
         }
-        if(request.getStatus()!=null) apartment.setStatus(ApartmentEnum.valueOf(request.getStatus()));
-        if(request.getArea() != null) apartment.setArea(request.getArea());
-        if(request.getOwnerPhone()!=null) apartment.setOwnerPhone(request.getOwnerPhone());
+        if (request.getStatus() != null)
+            apartment.setStatus(ApartmentEnum.valueOf(request.getStatus()));
+        if (request.getArea() != null)
+            apartment.setArea(request.getArea());
+        if (request.getOwnerPhone() != null)
+            apartment.setOwnerPhone(request.getOwnerPhone());
 
         List<Resident> residentList = Optional.ofNullable(apartment.getResidentList()).orElse(Collections.emptyList());
 
@@ -130,7 +143,7 @@ public class ApartmentService {
         // Remove resident who not in request list
         residentList.forEach(resident -> {
             if (!requestResidents.contains(resident.getId())) {
-                resident.setApartment(null);   // set their address = null
+                resident.setApartment(null); // set their address = null
                 residentRepository.save(resident);
             }
         });

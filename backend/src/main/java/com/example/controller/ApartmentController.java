@@ -44,14 +44,14 @@ public class ApartmentController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Apartment> getDetail(@PathVariable Long id){
+    public ResponseEntity<Apartment> getDetail(@PathVariable Long id) {
         Apartment apartment = apartmentService.getDetail(id);
         return ResponseEntity.status(HttpStatus.OK).body(apartment);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Apartment> updateOne(@PathVariable Long id, @RequestBody ApartmentUpdateRequest request){
-        Apartment apartment =  apartmentService.update(id,request);
+    public ResponseEntity<Apartment> updateOne(@PathVariable Long id, @RequestBody ApartmentUpdateRequest request) {
+        Apartment apartment = apartmentService.update(id, request);
         return ResponseEntity.status(HttpStatus.OK).body(apartment);
     }
 }
