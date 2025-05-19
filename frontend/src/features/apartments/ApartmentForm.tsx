@@ -52,6 +52,7 @@ export default function ApartmentForm({
   const [selectedResidents, setSelectedResidents] = useState<Resident[]>(
     apartment?.residentList || []
   );
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -61,10 +62,19 @@ export default function ApartmentForm({
       ...prevValues,
       [id]: value,
     }));
+    
+    // Clear error for this field when user starts typing
+    if (errors[id]) {
+      setErrors(prev => {
+        const newErrors = {...prev};
+        delete newErrors[id];
+        return newErrors;
+      });
+    }
   };
 
   const handleResidentsSelect = (newResidents: Resident[]) => {
-    // Gộp danh sách cư dân hiện tại với danh sách cư dân mới, loại bỏ trùng lặp theo ID
+    // Combine current residents with new residents, removing duplicates by ID
     const updatedResidents = [
       ...selectedResidents,
       ...newResidents.filter(
@@ -77,16 +87,18 @@ export default function ApartmentForm({
 
     setSelectedResidents(updatedResidents);
 
-    // Cập nhật memberIds để gửi API
+    // Update memberIds for API
     setFormValues((prevValues) => ({
       ...prevValues,
       memberIds: updatedResidents.map((resident) => resident.id),
     }));
   };
 
-  const handleUpdate = async (e: any) => {
+  const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    
+    if (!validateForm()) return;
+    
     try {
       const data = {
         area: formValues.area,
@@ -95,26 +107,36 @@ export default function ApartmentForm({
         residents: formValues.memberIds,
         ownerPhone: formValues.ownerPhone,
       };
-      // console.log(data);
+      console.log("Updating apartment with data:", data);
 
       const response = await axios.put(
         `http://localhost:8080/api/v1/apartments/${formValues.addressNumber}`,
         data
       );
 
+      toast.success("Update Successful");
+      
+      // Refresh apartment list
+      fetchApartments();
+      
       setTimeout(() => {
         window.location.reload();
       }, 1500);
-
-      toast.success("Update Sucessfull");
     } catch (err) {
-      toast.error(`Có lỗi xảy ra`);
+      toast.error("Có lỗi xảy ra");
     }
   };
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Submit button clicked");
 
+    if (!validateForm()) {
+      console.log("Form validation failed", errors);
+      return;
+    }
+    
+    // Create apartment data object
     const apartmentData = {
       addressNumber: formValues.addressNumber,
       area: formValues.area,
@@ -123,18 +145,19 @@ export default function ApartmentForm({
       ownerPhone: formValues.ownerPhone,
       memberIds: formValues.memberIds,
     };
-
+    
+    console.log("Sending apartment data:", apartmentData);
+    
     try {
-      await axios.post(
+      const response = await axios.post(
         "http://localhost:8080/api/v1/apartments",
         apartmentData
       );
-
+      
+      console.log("Response success:", response.data);
       toast.success("Add Apartment Successful");
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
-      fetchApartments();
+      
+      // Reset form
       setFormValues({
         addressNumber: "",
         status: "",
@@ -145,26 +168,85 @@ export default function ApartmentForm({
         memberIds: [],
       });
       setSelectedResidents([]);
-    } catch (error) {
-      // toast.error(`Có lỗi xảy ra`);
-      console.error(error);
+      
+      // Refresh apartment list
+      fetchApartments();
+      
+      // Delay reload if needed
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+    } catch (err: any) {
+      console.error("Error details:", err);
+      
+      // Ensure error toast always displays, even without response from server
+      let errorMessage = "Đã có lỗi xảy ra khi thêm căn hộ";
+      
+      if (err.response) {
+        const errorData = err.response.data;
+        console.log("Error response structure:", errorData);
+        
+        // Extract error message from response
+        if (typeof errorData === 'string') {
+          errorMessage = errorData;
+        } 
+        else if (errorData && typeof errorData === 'object') {
+          // Extract error message in priority order
+          errorMessage = errorData.message || 
+                        errorData.error || 
+                        (errorData.errors && Array.isArray(errorData.errors) ? errorData.errors.join(", ") : errorData.detail) || 
+                        JSON.stringify(errorData);
+        }
+        
+        console.error(`HTTP error ${err.response.status}: ${errorMessage}`);
+      } else if (err.request) {
+        errorMessage = "Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối của bạn!";
+        console.error("No response received:", err.request);
+      } else {
+        console.error("Error setting up request:", err.message);
+      }
+      
+      toast.error(errorMessage);
     }
   };
 
+  const validateForm = () => {
+    const newErrors: {[key: string]: string} = {};
+    
+    if (!formValues.addressNumber.trim()) {
+      newErrors.addressNumber = "Vui lòng nhập số căn hộ";
+    }
+    
+    if (!formValues.area.trim()) {
+      newErrors.area = "Vui lòng nhập diện tích";
+    } else if (isNaN(Number(formValues.area))) {
+      newErrors.area = "Diện tích phải là số";
+    }
+    
+    if (!formValues.status) {
+      newErrors.status = "Vui lòng chọn trạng thái";
+    }
+    
+    // Only check ownerId instead of ownerName
+    if (!formValues.ownerId) {
+      newErrors.ownerId = "Vui lòng nhập ID chủ hộ";
+    }
+    
+    if (!formValues.ownerPhone.trim()) {
+      newErrors.ownerPhone = "Vui lòng nhập số điện thoại";
+    } else if (!/^[0-9]{10,11}$/.test(formValues.ownerPhone)) {
+      newErrors.ownerPhone = "Số điện thoại không hợp lệ";
+    }
+    
+    // Set errors to state - important!
+    setErrors(newErrors);
+    console.log("Validation errors:", newErrors);
+    
+    // Return validation result
+    return Object.keys(newErrors).length === 0;
+  };
+  
   const statusOptions = ["Business", "Residential"];
-
-  // API xoá căn hộ (delete)
-
-  // const handleDelete = async (e: any) => {
-  //   e.preventDefault();
-
-  //   try {
-  //     const response = await axios.delete(``)
-  //   } catch (err) {
-  //     toast.error("Có lỗi xảy ra");
-  //   }
-
-  // }
 
   return (
     <Form width="800px">
@@ -177,7 +259,11 @@ export default function ApartmentForm({
             type="text"
             value={formValues.addressNumber}
             onChange={handleChange}
+            required
+            disabled={!!apartment} // Disable if editing existing apartment
           />
+          {errors.addressNumber && (
+            <p className="text-red-500 text-sm mt-1">{errors.addressNumber}</p>)}
         </FormField>
 
         <FormField>
@@ -187,7 +273,11 @@ export default function ApartmentForm({
             type="text"
             value={formValues.area}
             onChange={handleChange}
+            required
           />
+          {errors.area && (
+            <p className="text-red-500 text-sm mt-1">{errors.area}</p>
+          )}
         </FormField>
       </Form.Fields>
 
@@ -198,6 +288,9 @@ export default function ApartmentForm({
         options={statusOptions}
         label="Status"
       />
+      {errors.status && (
+        <p className="text-red-500 text-sm mt-1">{errors.status}</p>
+      )}
 
       <label>Owner:</label>
       <Form.Fields type="horizontal">
@@ -208,7 +301,11 @@ export default function ApartmentForm({
             type="text"
             value={formValues.ownerId}
             onChange={handleChange}
+            required
           />
+          {errors.ownerId && (
+            <p className="text-red-500 text-sm mt-1">{errors.ownerId}</p>
+          )}
         </FormField>
         <FormField>
           <FormField.Label label="Phone:" />
@@ -217,7 +314,11 @@ export default function ApartmentForm({
             type="text"
             value={formValues.ownerPhone}
             onChange={handleChange}
+            required
           />
+          {errors.ownerPhone && (
+            <p className="text-red-500 text-sm mt-1">{errors.ownerPhone}</p>
+          )}
         </FormField>
       </Form.Fields>
 
@@ -244,6 +345,7 @@ export default function ApartmentForm({
           <ResidentAddModal onResidentsSelect={handleResidentsSelect} />
         </Modal.Window>
       </Modal>
+      
       {apartment?.vehicleList && (
         <>
           <label>Vehicle:</label>
@@ -253,7 +355,7 @@ export default function ApartmentForm({
               <div>Type</div>
             </Table.Header>
             {apartment.vehicleList.map((vehicle) => (
-              <Table.Row size="small">
+              <Table.Row size="small" key={vehicle.id}>
                 <div>{vehicle.id}</div>
                 <div>{vehicle.category}</div>
               </Table.Row>
@@ -265,12 +367,6 @@ export default function ApartmentForm({
       {/* Action Buttons */}
       {apartment ? (
         <Form.Buttons>
-          {/* <Button type="button" variation="danger" size="medium">
-            Delete
-            <span>
-              <HiTrash />
-            </span>
-          </Button> */}
           <Button
             onClick={handleUpdate}
             type="button"
@@ -286,8 +382,16 @@ export default function ApartmentForm({
       ) : (
         <Form.Buttons>
           <Button
+            onClick={(e) => {
+              console.log("Add button clicked");
+              // Force validation before submission
+              const isValid = validateForm();
+              console.log("Form validation result:", isValid, errors);
+              if (isValid) {
+                handleSubmit(e);
+              }
+            }}
             type="button"
-            onClick={handleSubmit}
             size="medium"
             variation="primary"
           >
