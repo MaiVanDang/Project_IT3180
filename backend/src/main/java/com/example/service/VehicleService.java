@@ -35,7 +35,7 @@ public class VehicleService {
 
     @Transactional
     public PaginatedResponse<Vehicle> getAll(Specification<Vehicle> spec, Pageable pageable) {
-        Page<Vehicle> pageVehicle = vehicleRepository.findAll(spec,pageable);
+        Page<Vehicle> pageVehicle = vehicleRepository.findAll(spec, pageable);
         return PaginatedResponse.<Vehicle>builder()
                 .pageSize(pageable.getPageSize())
                 .curPage(pageable.getPageNumber())
@@ -48,21 +48,34 @@ public class VehicleService {
     @Transactional
     public Vehicle create(Vehicle vehicleRequest) {
         if (this.vehicleRepository.findById(vehicleRequest.getId()).isPresent()) {
-            throw new RuntimeException("Vehicle with id = " + vehicleRequest.getId()+ " already exists");
+            throw new RuntimeException("Vehicle with id = " + vehicleRequest.getId() + " already exists");
         }
-        if (vehicleRequest.getId() == null){
+        if (vehicleRequest.getId() == null) {
             throw new RuntimeException("Vehicle id is null");
+        }
+        // Tìm căn hộ theo ID
+        Apartment apartment = this.apartmentRepository.findById(vehicleRequest.getApartmentId())
+                .orElseThrow(() -> new RuntimeException(
+                        "Apartment with id " + vehicleRequest.getApartmentId() + " does not exist"));
+
+        // Kiểm tra căn hộ đã có chủ chưa
+        if (apartment.getOwner() == null) {
+            throw new RuntimeException("Apartment with id " + vehicleRequest.getApartmentId()
+                    + " doesn't have an owner yet. Please assign an owner before registering vehicles.");
         }
         Vehicle vehicle = new Vehicle();
         vehicle.setId(vehicleRequest.getId());
         vehicle.setCategory(vehicleRequest.getCategory());
-        vehicle.setApartment(this.apartmentRepository.findById(vehicleRequest.getApartmentId()).orElseThrow(() -> new RuntimeException("Apartment with id " + vehicleRequest.getApartmentId() + " does not exist")));
+        vehicle.setApartment(this.apartmentRepository.findById(vehicleRequest.getApartmentId())
+                .orElseThrow(() -> new RuntimeException(
+                        "Apartment with id " + vehicleRequest.getApartmentId() + " does not exist")));
         return this.vehicleRepository.save(vehicle);
     }
 
     @Transactional
     public ApiResponse<String> deleteVehicle(Long id, Vehicle vehicleRequest) throws Exception {
-        Apartment apartment = this.apartmentRepository.findById(id).orElseThrow(() -> new RuntimeException("Apartment with id " + id + " does not exist"));
+        Apartment apartment = this.apartmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Apartment with id " + id + " does not exist"));
         Vehicle vehicle = this.vehicleRepository.findById(vehicleRequest.getId()).orElse(null);
         List<Vehicle> vehicleList = apartment.getVehicleList();
         vehicleList.remove(vehicle);
