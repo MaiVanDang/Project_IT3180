@@ -26,6 +26,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -232,6 +233,17 @@ public class ResidentService {
                 // Lấy danh sách tất cả thành viên trong căn hộ
                 List<Resident> allResidents = apartment.getResidentList();
 
+                // Xóa tất cả xe cộ liên kết với căn hộ
+                List<Vehicle> allVehicles = apartment.getVehicleList();
+                if (allVehicles != null && !allVehicles.isEmpty()) {
+                    for (Vehicle vehicle : allVehicles) {
+                        // Xóa hoàn toàn xe khỏi database
+                        vehicleRepository.deleteById(vehicle.getId());
+                    }
+                    // Xóa tham chiếu đến xe cộ trong căn hộ
+                    apartment.setVehicleList(Collections.emptyList());
+                    apartmentRepository.save(apartment);
+                }
                 // Ngắt kết nối tất cả residents với apartment trước khi xóa để tránh lỗi ràng
                 // buộc
                 for (Resident r : allResidents) {
