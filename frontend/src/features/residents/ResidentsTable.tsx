@@ -33,7 +33,8 @@ export default function ResidentsTable({ keyword, filterString = "" }: Residents
       }
       
       const response = await axios.get(
-        `http://localhost:8080/api/v1/residents?size=10&page=${page}${filter ? `&filter=${filter}` : ""}`
+       // `http://localhost:8080/api/v1/residents?size=10&page=${page}${filter ? `&filter=${filter}` : ""}`
+       `http://localhost:8080/api/v1/residents/all?size=10&page=${page}${filter ? `&filter=${filter}` : ""}`
       );
       
       setResidents(response.data.data.result);
@@ -86,7 +87,7 @@ export default function ResidentsTable({ keyword, filterString = "" }: Residents
             <ResidentRow 
               key={resident.id} 
               resident={resident} 
-              index={(curPage - 1) * 10 + index + 1} 
+              index={(curPage - 1) * 10 + index} 
             />
           ))
         ) : (
