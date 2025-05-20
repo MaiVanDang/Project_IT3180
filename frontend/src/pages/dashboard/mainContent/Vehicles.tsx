@@ -10,7 +10,7 @@ export default function Vehicles() {
   return (
     <>
       <Row type="horizontal">
-        <Heading as="h1">Vehicles Management</Heading>
+        <Heading as="h1">Quản lý phương tiện</Heading>
         <AddAndSearch title="Add Vehicle" setKeyword={setKeyword} keyword={keyword}>
           <VehicleForm />
         </AddAndSearch>
