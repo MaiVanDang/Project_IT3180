@@ -8,9 +8,14 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 export default function VehicleForm({ vehicle }: any) {
+  const getToday = () => {
+    const today = new Date();
+    return today.toISOString().split("T")[0]; // YYYY-MM-DD
+  };
+
   const [formValues, setFormValues] = useState({
     apartmentId: vehicle?.apartmentId || "",
-    registerDate: vehicle?.registerDate || "",
+    registerDate: vehicle?.registerDate || getToday(),
     id: vehicle?.id || "",
     category: vehicle?.category || "",
   });
@@ -51,7 +56,8 @@ export default function VehicleForm({ vehicle }: any) {
     const vehicleData = {
       apartmentId: formValues.apartmentId,
       id: formValues.id,
-      category: formValues.category
+      category: formValues.category,
+      registerDate: formValues.registerDate,
     };
 
     console.log(vehicleData);
@@ -83,15 +89,15 @@ export default function VehicleForm({ vehicle }: any) {
           />
         </FormField>
 
-        {/* <FormField>
+        { <FormField>
           <FormField.Label label={"Date"} />
           <FormField.Input
-            id="ownerName"
-            type="text"
+            id="registerDate"
+            type="date"
             value={formValues.registerDate}
             onChange={handleChange}
           />
-        </FormField> */}
+        </FormField>}
 
         <FormField>
           <FormField.Label label={"Number"} />
@@ -115,7 +121,7 @@ export default function VehicleForm({ vehicle }: any) {
       {vehicle ? (
         <Form.Buttons>
           <Button variation="danger" size="medium" onClick={handleDelete}>
-            Delete
+            Xóa
             <span>
               <HiTrash />
             </span>
@@ -129,8 +135,8 @@ export default function VehicleForm({ vehicle }: any) {
         </Form.Buttons>
       ) : (
         <Form.Buttons>
-          <Button size="medium" variation="primary">
-            Add
+          <Button size="medium" variation="primary" onClick={handleSubmit}>
+            Thêm
             <span>
               <HiOutlinePlusCircle />
             </span>
