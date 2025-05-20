@@ -58,11 +58,12 @@ public class ResidentService {
 
     public PaginatedResponse<Resident> fetchAll(Specification<Resident> spec, Pageable pageable) {
         Page<Resident> pageResident = this.residentRepository.findAll(spec, pageable);
+
         PaginatedResponse<Resident> page = new PaginatedResponse<>();
         page.setPageSize(pageable.getPageSize());
-        page.setCurPage(pageable.getPageNumber());
+        page.setCurPage(pageable.getPageNumber() + 1); // Đổi từ 0-based thành 1-based
         page.setTotalPages(pageResident.getTotalPages());
-        page.setTotalElements(pageResident.getNumberOfElements());
+        page.setTotalElements((int) pageResident.getNumberOfElements()); // Ép kiểu long về int
         page.setResult(pageResident.getContent());
         return page;
     }
@@ -153,7 +154,6 @@ public class ResidentService {
             Apartment apartment = apartmentRepository.findByOwner_Id(resident.getId()).orElse(null);
 
             if (apartment != null) {
-                apartment.setCreatedAt(null);
                 apartment.setOwner(null);
                 apartment.setOwnerPhone(null);
                 apartmentRepository.save(apartment);
@@ -162,6 +162,7 @@ public class ResidentService {
                     r.setApartment(null);
                     r.setIsActive(0);
                     r.setStatus(ResidentEnum.Moved);
+                    residentRepository.save(r);
                 }
             } else {
                 oldResident.setIsActive(0);
@@ -203,19 +204,29 @@ public class ResidentService {
 
     @Transactional
     public ApiResponse<String> deleteResident(Long id) throws Exception {
+        // Kiểm tra xem resident có tồn tại không
         Resident resident = this.fetchResidentById(id);
-        resident.setIsActive(0);
-        if (resident.getApartment() != null) {
-            Apartment apartment = apartmentRepository.findById(resident.getApartmentId()).orElseThrow(
-                    () -> new RuntimeException("Apartment with id " + resident.getApartmentId() + " not found"));
+
+        // Xử lý mối quan hệ với apartment (nếu có)
+        Apartment apartment = apartmentRepository.findByOwner_Id(resident.getId()).orElse(null);
+        if (apartment != null) {
+            apartment.setOwner(null);
+            apartment.setOwnerPhone(null);
+            apartmentRepository.save(apartment);
             List<Resident> residentList = apartment.getResidentList();
-            residentList.remove(resident);
-            apartment.setResidentList(residentList);
+            for (Resident r : residentList) {
+                residentRepository.delete(r);
+            }
         }
-        resident.setApartment(null);
+
+        // Xóa hoàn toàn resident khỏi database
+        residentRepository.delete(resident);
+        // Hoặc có thể dùng: residentRepository.deleteById(id);
+
+        // Trả về response
         ApiResponse<String> response = new ApiResponse<>();
         response.setCode(HttpStatus.OK.value());
-        response.setMessage("delete resident success");
+        response.setMessage("Deleted resident successfully");
         response.setData(null);
         return response;
     }
