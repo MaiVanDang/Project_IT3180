@@ -180,6 +180,8 @@ public class ResidentService {
             oldResident.setDob(resident.getDob());
         if (resident.getStatus() != null)
             oldResident.setStatus(ResidentEnum.fromString(resident.getStatus()));
+
+        oldResident.setIsActive(1);
         if (resident.getGender() != null)
             oldResident.setGender(resident.getGender());
         if (resident.getCic() != null)
@@ -207,21 +209,56 @@ public class ResidentService {
         // Kiểm tra xem resident có tồn tại không
         Resident resident = this.fetchResidentById(id);
 
-        // Xử lý mối quan hệ với apartment (nếu có)
-        Apartment apartment = apartmentRepository.findByOwner_Id(resident.getId()).orElse(null);
-        if (apartment != null) {
-            apartment.setOwner(null);
-            apartment.setOwnerPhone(null);
-            apartmentRepository.save(apartment);
-            List<Resident> residentList = apartment.getResidentList();
-            for (Resident r : residentList) {
-                residentRepository.delete(r);
+        // TH1: Người đó chưa có phòng --> xóa luôn
+        if (resident.getApartment() == null) {
+            residentRepository.deleteById(id);
+        }
+        // TH2: Người đó đã có phòng
+        else {
+            // Lấy thông tin căn hộ của resident
+            Apartment apartment = resident.getApartment();
+
+            // TH con 1: Nếu người đó là chủ căn hộ --> xóa cả người đó và các thành viên
+            Apartment ownedApartment = apartmentRepository.findByOwner_Id(resident.getId()).orElse(null);
+            if (ownedApartment != null) {
+                // Xác nhận đây là chủ hộ
+                Long addressNumber = apartment.getAddressNumber();
+
+                // Gỡ bỏ thông tin chủ hộ khỏi căn hộ
+                ownedApartment.setOwner(null);
+                ownedApartment.setOwnerPhone(null);
+                apartmentRepository.save(ownedApartment);
+
+                // Lấy danh sách tất cả thành viên trong căn hộ
+                List<Resident> allResidents = apartment.getResidentList();
+
+                // Ngắt kết nối tất cả residents với apartment trước khi xóa để tránh lỗi ràng
+                // buộc
+                for (Resident r : allResidents) {
+                    r.setApartment(null);
+                    residentRepository.save(r);
+                }
+
+                for (Resident r : allResidents) {
+                    residentRepository.delete(r.getId());
+                }
+            }
+            // TH con 2: Nếu người đó là thành viên --> chỉ xóa thành viên đó
+            else {
+                // Xóa resident khỏi danh sách cư dân của căn hộ
+                List<Resident> residentList = apartment.getResidentList();
+                residentList.removeIf(r -> r.getId().equals(resident.getId()));
+                apartment.setResidentList(residentList);
+                apartmentRepository.save(apartment);
+
+                // Ngắt kết nối giữa resident và apartment
+                resident.setApartment(null);
+                residentRepository.save(resident);
+
+                // Xóa resident
+                residentRepository.deleteById(id);
             }
         }
-
-        // Xóa hoàn toàn resident khỏi database
-        residentRepository.delete(resident);
-        // Hoặc có thể dùng: residentRepository.deleteById(id);
 
         // Trả về response
         ApiResponse<String> response = new ApiResponse<>();

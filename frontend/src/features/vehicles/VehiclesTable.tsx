@@ -40,11 +40,10 @@ export default function VehiclesTable({ keyword }: VehiclesTableProps) {
   return (
     <Table columns="1fr 1fr 1fr 1fr 1fr">
       <Table.Header>
-        <div>Vehicle Number</div>
-        <div>Room</div>
-        <div>Type</div>
-        <div>Registration Date</div>
-        <div>Actions</div>
+        <div>Biển số xe</div>
+        <div>Căn hộ</div>
+        <div>Loại</div>
+        <div>Ngày đăng kí</div>
       </Table.Header>
 
       {vehicles.map((vehicle) => (
