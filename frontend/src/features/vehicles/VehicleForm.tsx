@@ -44,9 +44,29 @@ export default function VehicleForm({ vehicle }: any) {
         window.location.reload();
       }, 1000);
       toast.success("Delete vehicle successfull!");
-    } catch (error) {
-      toast.error("Có lỗi xảy ra");
-      // console.log(error);
+    } catch (error : any) {
+      // Xử lý lỗi chi tiết từ backend
+      if (error.response) {
+        // Có phản hồi từ server
+        const errorData = error.response.data;
+        switch (error.response.status) {
+          case 404: // Not Found - Vehicle Not Found
+            toast.error(`Lỗi: ${errorData.message}`);
+            break;
+          case 400: // Bad Request - Validation Error
+            toast.error(`Lỗi: ${errorData.message}`);
+            break;
+          default:
+            toast.error(`Lỗi: ${errorData.message || "Có lỗi xảy ra, vui lòng thử lại sau"}`);
+        }
+      } else if (error.request) {
+        // Không nhận được phản hồi từ server
+        toast.error("Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối của bạn!");
+      } else {
+        // Lỗi khi thiết lập request
+        toast.error("Đã xảy ra lỗi khi gửi yêu cầu!");
+      }
+      console.error("Chi tiết lỗi:", error);
     }
   };
 
@@ -70,9 +90,32 @@ export default function VehicleForm({ vehicle }: any) {
         window.location.reload();
       }, 1000);
       toast.success("Add vehicle successfull");
-    } catch (error) {
-      toast.error("Có lỗi xảy ra");
-      console.log(error);
+    } catch (error : any) {
+      // Xử lý lỗi chi tiết từ backend
+      if (error.response) {
+        // Có phản hồi từ server
+        const errorData = error.response.data;
+        switch (error.response.status) {
+          case 409: // Conflict - Resource Already Exists
+            toast.error(`Lỗi: ${errorData.message}`);
+            break;
+          case 404: // Not Found - Apartment Not Found
+            toast.error(`Lỗi: ${errorData.message}`);
+            break;
+          case 400: // Bad Request - Validation Error
+            toast.error(`Lỗi: ${errorData.message}`);
+            break;
+          default:
+            toast.error(`Lỗi: ${errorData.message || "Có lỗi xảy ra, vui lòng thử lại sau"}`);
+        }
+      } else if (error.request) {
+        // Không nhận được phản hồi từ server
+        toast.error("Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối của bạn!");
+      } else {
+        // Lỗi khi thiết lập request
+        toast.error("Đã xảy ra lỗi khi gửi yêu cầu!");
+      }
+      console.error("Chi tiết lỗi:", error);
     }
   };
 
