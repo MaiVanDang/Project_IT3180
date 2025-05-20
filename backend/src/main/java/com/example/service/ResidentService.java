@@ -10,9 +10,11 @@ import com.example.dto.response.UserResponse;
 import com.example.entity.Apartment;
 import com.example.entity.Resident;
 import com.example.entity.User;
+import com.example.entity.Vehicle;
 import com.example.exception.UserInfoException;
 import com.example.repository.ApartmentRepository;
 import com.example.repository.ResidentRepository;
+import com.example.repository.VehicleRepository;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -33,6 +35,7 @@ import java.util.Optional;
 public class ResidentService {
     ResidentRepository residentRepository;
     ApartmentRepository apartmentRepository;
+    VehicleRepository vehicleRepository;
 
     public PaginatedResponse<Resident> fetchAllResidents(Specification<Resident> spec, Pageable pageable) {
         // Page<Resident> pageResident = this.residentRepository.findAll(spec,
@@ -141,36 +144,58 @@ public class ResidentService {
     @Transactional
     public Resident updateResident(ResidentUpdateRequest resident) throws Exception {
         Resident oldResident = this.fetchResidentById(resident.getId());
-        if (oldResident != null) {
-            if (resident.getName() != null)
-                oldResident.setName(resident.getName());
-            if (resident.getDob() != null)
-                oldResident.setDob(resident.getDob());
-            if (resident.getStatus() != null) {
-                oldResident.setStatus(ResidentEnum.fromString(resident.getStatus()));
-            }
-            if (resident.getGender() != null) {
-                oldResident.setGender(resident.getGender());
-            }
-            if (resident.getCic() != null) {
-                oldResident.setCic(resident.getCic());
-            }
-            if (resident.getAddressNumber() != null) {
-                Apartment newApartment = apartmentRepository.findById(resident.getAddressNumber())
-                        .orElseThrow(() -> new RuntimeException(
-                                "Apartment with address number " + resident.getAddressNumber() + " not found"));
-                List<Resident> residentList = newApartment.getResidentList();
-                residentList.add(oldResident);
-                newApartment.setResidentList(residentList);
-                apartmentRepository.save(newApartment);
-                oldResident.setApartment(newApartment);
-            }
-        } else {
+        if (oldResident == null) {
             throw new Exception("Resident with id = " + resident.getId() + " is not found");
         }
 
+        if (resident.getStatus() != null && resident.getStatus().equals("Moved")) {
+            // Remove from apartment if necessary
+            Apartment apartment = apartmentRepository.findByOwner_Id(resident.getId()).orElse(null);
+
+            if (apartment != null) {
+                apartment.setCreatedAt(null);
+                apartment.setOwner(null);
+                apartment.setOwnerPhone(null);
+                apartmentRepository.save(apartment);
+                List<Resident> residentList = apartment.getResidentList();
+                for (Resident r : residentList) {
+                    r.setApartment(null);
+                    r.setIsActive(0);
+                    r.setStatus(ResidentEnum.Moved);
+                }
+            } else {
+                oldResident.setIsActive(0);
+                oldResident.setStatus(ResidentEnum.Moved);
+                oldResident.setApartment(null);
+                residentRepository.save(oldResident);
+            }
+            return null; // hoặc ném ngoại lệ nếu bạn muốn báo là đã xóa
+        }
+
+        // Cập nhật thông tin khác
+        if (resident.getName() != null)
+            oldResident.setName(resident.getName());
+        if (resident.getDob() != null)
+            oldResident.setDob(resident.getDob());
+        if (resident.getStatus() != null)
+            oldResident.setStatus(ResidentEnum.fromString(resident.getStatus()));
+        if (resident.getGender() != null)
+            oldResident.setGender(resident.getGender());
+        if (resident.getCic() != null)
+            oldResident.setCic(resident.getCic());
+        if (resident.getAddressNumber() != null) {
+            Apartment newApartment = apartmentRepository.findById(resident.getAddressNumber())
+                    .orElseThrow(() -> new RuntimeException(
+                            "Apartment with address number " + resident.getAddressNumber() + " not found"));
+            List<Resident> residentList = newApartment.getResidentList();
+            residentList.add(oldResident);
+            newApartment.setResidentList(residentList);
+            apartmentRepository.save(newApartment);
+            oldResident.setApartment(newApartment);
+        }
+
         try {
-            return this.residentRepository.save(oldResident);
+            return residentRepository.save(oldResident);
         } catch (Exception e) {
             throw new RuntimeException("Error saving resident: " + e.getMessage());
         }
