@@ -50,7 +50,7 @@ const StatisticsTable = ({ keyword }: StatisticsTableProps) => {
   return (
     <Table columns="1fr 1fr">
       <Table.Header>
-        <div>Room</div>
+        <div>Mã căn hộ</div>
         <div>Actions</div>
       </Table.Header>
 
