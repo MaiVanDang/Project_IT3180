@@ -35,6 +35,4 @@ public class  InvoiceApartment {
     @MapKeyColumn(name = "fee_id")
     @Column(name = "amount")
     Map<Long, Double> feeAmounts; // Key: Fee ID, Value: Amount
-
-
 }

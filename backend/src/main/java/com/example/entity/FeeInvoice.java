@@ -23,7 +23,4 @@ public class FeeInvoice {
     @ManyToOne
     @JoinColumn(name = "invoice_id")
     Invoice invoice;
-
-
-
 }
