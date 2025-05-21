@@ -25,13 +25,13 @@ import org.springframework.web.bind.annotation.*;
 public class ApartmentController {
     ApartmentService apartmentService;
 
-    @PostMapping("/")
+    @PostMapping("")
     public ResponseEntity<Apartment> createOne(@Valid @RequestBody ApartmentCreateRequest request) {
         Apartment apartment = apartmentService.create(request);
         return ResponseEntity.status(HttpStatus.OK).body(apartment);
     }
 
-    @GetMapping("/")
+    @GetMapping("")
     public ResponseEntity<PaginatedResponse<Apartment>> getAll(
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size,

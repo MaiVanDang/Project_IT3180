@@ -15,5 +15,5 @@ public class FeeCreateRequest {
     String name;
     String description;
     FeeTypeEnum feeTypeEnum;
-    BigDecimal unitPrice;
+    BigDecimal unitPrice; // Có thể null nếu feeTypeEnum là ContributionFund
 }

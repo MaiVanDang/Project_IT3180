@@ -22,7 +22,7 @@ const InvoiceTable = ({ keyword }: InvoicesTableProps) => {
       const response = await axios.get(
         `http://localhost:8080/api/v1/invoices?page=${page}&size=10&filter=name~'${keyword}'`
       );
-      // console.log(response.data.data.result);
+      console.log(response.data.data.result);
 
       setInvoices(response.data.data.result);
       setTotalPages(response.data.data.totalPages);

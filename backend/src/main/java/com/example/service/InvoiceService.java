@@ -107,8 +107,11 @@ public class InvoiceService {
                             amount = fee.getUnitPrice().doubleValue() * apartment.getArea();
                         } else if (fee.getFeeTypeEnum() == FeeTypeEnum.VehicleFee) {
                             // Vehicle fee: calculated based on the number of cars and motorbikes
-                            long totalVehicles = 3*apartment.getNumberOfCars() + apartment.getNumberOfMotorbikes();
-                            amount = fee.getUnitPrice().doubleValue() * totalVehicles;
+//                            long totalVehicles = 3*apartment.getNumberOfCars() + apartment.getNumberOfMotorbikes();
+//                            amount = fee.getUnitPrice().doubleValue() * totalVehicles;
+                            double carFee = apartment.getNumberOfCars() * 1200000; // 1.200.000 VND/ô tô
+                            double motorbikeFee = apartment.getNumberOfMotorbikes() * 70000; // 70.000 VND/xe máy
+                            amount = carFee + motorbikeFee;
                         } else if (fee.getFeeTypeEnum() == FeeTypeEnum.ContributionFund) {
                             // Contribution fee: retrieved from `feeAmount` stored in InvoiceApartment
                             amount = invoiceApartment.getFeeAmounts().getOrDefault(fee.getId(), 0.0); // feeAmountMap contains {feeId -> amount}
@@ -155,11 +158,16 @@ public class InvoiceService {
     public InvoiceResponse createInvoice(InvoiceRequest request) throws RuntimeException {
         Invoice invoice = new Invoice();
         //Check if the invoice exists or not
-        if (invoiceRepository.findById(request.getInvoiceId()).isPresent()) {
-            Invoice response = invoiceRepository.findById(request.getInvoiceId()).get();
-            if(response.getIsActive()==1) throw new RuntimeException("Invoice with id = " + request.getInvoiceId() + " is already actived");
-            else invoice.setIsActive(1);
+        Optional<Invoice> existingInvoice = invoiceRepository.findById(request.getInvoiceId());
+        if (existingInvoice.isPresent()) {
+            Invoice response = existingInvoice.get();
+            if (response.getIsActive() == 1) {
+                throw new RuntimeException("Invoice with id = " + request.getInvoiceId() + " is already actived");
+            } else {
+                invoice.setIsActive(1);
+            }
         }
+
         // If it does not exist, create a new Invoice
         invoice.setId(request.getInvoiceId());
         invoice.setName(request.getName());
@@ -170,21 +178,34 @@ public class InvoiceService {
         for (Fee f : feeList) {
             FeeInvoice feeInvoice = new FeeInvoice();
             feeInvoice.setFee(f);
-            feeInvoice.setInvoice(invoiceRepository.findById(request.getInvoiceId()).orElse(null));
+//            feeInvoice.setInvoice(invoiceRepository.findById(request.getInvoiceId()).orElse(null));
+            feeInvoice.setInvoice(invoice);
             feeInvoiceRepository.save(feeInvoice);
         }
-
-        LocalDate localDate = Objects.requireNonNull(invoiceRepository.findById(invoice.getId()).orElse(null)).getUpdatedAt().atZone(ZoneId.systemDefault()).toLocalDate();
-        List<Fee> feeListAfterCreate = feeInvoiceRepository.findFeesByInvoiceId(request.getInvoiceId());
-
-        List<Apartment> apartmentList = apartmentRepository.findAll();
-        for (Apartment a : apartmentList) {
+        if (request.getApartmentId() != null) {
+            // Tạo hóa đơn cho một căn hộ cụ thể (dành cho ContributionFund)
+            Apartment apartment = apartmentRepository.findById(request.getApartmentId())
+                    .orElseThrow(() -> new RuntimeException("Apartment not found: " + request.getApartmentId()));
             InvoiceApartment invoiceApartment = new InvoiceApartment();
-            invoiceApartment.setApartment(a);
+            invoiceApartment.setApartment(apartment);
             invoiceApartment.setInvoice(invoice);
             invoiceApartment.setPaymentStatus(PaymentEnum.Unpaid);
             invoiceApartmentRepository.save(invoiceApartment);
+        } else {
+            // Tạo hóa đơn cho tất cả căn hộ (dành cho DepartmentFee, VehicleFee)
+            List<Apartment> apartmentList = apartmentRepository.findAll();
+            for (Apartment a : apartmentList) {
+                InvoiceApartment invoiceApartment = new InvoiceApartment();
+                invoiceApartment.setApartment(a);
+                invoiceApartment.setInvoice(invoice);
+                invoiceApartment.setPaymentStatus(PaymentEnum.Unpaid);
+                invoiceApartmentRepository.save(invoiceApartment);
+            }
         }
+
+        LocalDate localDate = Objects.requireNonNull(invoiceRepository.findById(invoice.getId()).orElse(null)).getUpdatedAt().atZone(ZoneId.systemDefault()).toLocalDate();
+        // LocalDate localDate = invoice.getUpdatedAt().atZone(ZoneId.systemDefault()).toLocalDate();
+        List<Fee> feeListAfterCreate = feeInvoiceRepository.findFeesByInvoiceId(request.getInvoiceId());
 
         return InvoiceResponse.builder()
                 .isActive(invoice.getIsActive())

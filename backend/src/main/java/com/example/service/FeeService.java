@@ -1,5 +1,6 @@
 package com.example.service;
 
+import com.example.constant.FeeTypeEnum;
 import com.example.dto.request.FeeCreateRequest;
 import com.example.dto.response.ApiResponse;
 import com.example.dto.response.PaginatedResponse;
@@ -14,6 +15,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 @Service
@@ -36,12 +38,21 @@ public class FeeService {
         return feeRepository.findById(id).orElseThrow(() -> new RuntimeException("Fee with code = " + id + " is not found"));
     }
 
-    public Fee createFee (FeeCreateRequest feeCreateRequest) throws RuntimeException {
+    public Fee createFee(FeeCreateRequest feeCreateRequest) throws RuntimeException {
         Fee fee = new Fee();
         fee.setName(feeCreateRequest.getName());
         fee.setDescription(feeCreateRequest.getDescription());
         fee.setFeeTypeEnum(feeCreateRequest.getFeeTypeEnum());
-        fee.setUnitPrice(feeCreateRequest.getUnitPrice());
+
+        if (feeCreateRequest.getFeeTypeEnum() != FeeTypeEnum.ContributionFund) {
+            if (feeCreateRequest.getUnitPrice() == null || feeCreateRequest.getUnitPrice().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new RuntimeException("Unit price must be provided and greater than 0 for DepartmentFee or VehicleFee");
+            }
+            fee.setUnitPrice(feeCreateRequest.getUnitPrice());
+        } else {
+            fee.setUnitPrice(BigDecimal.ZERO); // ContributionFund không cần unitPrice
+        }
+
         return this.feeRepository.save(fee);
     }
 
