@@ -31,7 +31,7 @@ export default function ResidentForm({ resident, onCloseModal }: any) {
 
   const handleAddResident = async (e: any) => {
     e.preventDefault();
-    
+
     const data = {
       cic: formValues.id,
       name: formValues.name,
@@ -40,7 +40,7 @@ export default function ResidentForm({ resident, onCloseModal }: any) {
       status: formValues.status,
       gender: formValues.gender
     }
-    console.log(data);  
+    console.log(data);
 
     try {
       const response = await axios.post(
@@ -63,7 +63,7 @@ export default function ResidentForm({ resident, onCloseModal }: any) {
       if (err.response) {
         // Có phản hồi từ server
         const errorData = err.response.data;
-        
+
         switch (err.response.status) {
           case 409: // Conflict - Resource Already Exists
             toast.error(`Lỗi: ${errorData.message}`);
@@ -100,30 +100,30 @@ export default function ResidentForm({ resident, onCloseModal }: any) {
         gender: formValues.gender,
         cic: formValues.cic || formValues.id // Sử dụng cic nếu có, nếu không thì dùng id
       };
-      
+
       console.log("Dữ liệu cập nhật:", updateData);
-      
+
       // Gửi request PUT đến endpoint update
       const response = await axios.put(
         "http://localhost:8080/api/v1/residents",
         updateData
       );
-      
+
       toast.success("Cập nhật cư dân thành công!");
-      
+
       if (onCloseModal) {
         onCloseModal();
       }
-      
+
       setTimeout(() => {
         window.location.reload();
       }, 1000);
-      
+
     } catch (err: any) {
       // Xử lý lỗi chi tiết từ backend
       if (err.response) {
         const errorData = err.response.data;
-        
+
         switch (err.response.status) {
           case 404: // Not Found
             toast.error(`Lỗi: ${errorData.message || "Không tìm thấy cư dân"}`);
@@ -147,13 +147,13 @@ export default function ResidentForm({ resident, onCloseModal }: any) {
     try {
       console.log(formValues.id);
       const response = await axios.delete(`http://localhost:8080/api/v1/residents/${formValues.id}`)
-      
+
       toast.success("Xóa cư dân thành công");
-      
+
       if (onCloseModal) {
         onCloseModal();
       }
-      
+
       setTimeout(() => {
         window.location.reload();
       }, 1000);
@@ -253,10 +253,10 @@ export default function ResidentForm({ resident, onCloseModal }: any) {
 
       {resident ? (
         <Form.Buttons>
-          <Button 
-            type="button" 
-            onClick={handleDelete} 
-            variation="danger" 
+          <Button
+            type="button"
+            onClick={handleDelete}
+            variation="danger"
             size="medium"
           >
             Xóa
@@ -264,12 +264,12 @@ export default function ResidentForm({ resident, onCloseModal }: any) {
               <HiTrash />
             </span>
           </Button>
-          <Button 
+          <Button
             onClick={handleUpdateResident}
-            type="button" 
-            variation="secondary"  
+            type="button"
+            variation="secondary"
             size="medium"
-            // disabled={!isFormValid()}
+          // disabled={!isFormValid()}
           >
             Cập nhật
             <span>
