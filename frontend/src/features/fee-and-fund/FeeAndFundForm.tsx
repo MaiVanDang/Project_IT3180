@@ -7,19 +7,30 @@ import { HiOutlinePlusCircle, HiPencil, HiTrash } from "react-icons/hi2";
 import axios from "axios";
 import { toast } from "react-toastify";
 
+// Hàm định dạng ngày thành dd/mm/yyyy
+const formatDate = (date: any) => {
+  const day = String(date.getDate()).padStart(2, "0"); // Lấy ngày, thêm số 0 nếu cần
+  const month = String(date.getMonth() + 1).padStart(2, "0"); // Lấy tháng (tháng bắt đầu từ 0 nên +1)
+  const year = date.getFullYear(); // Lấy năm
+  return `${day}/${month}/${year}`; // Trả về định dạng dd/mm/yyyy
+};
 
 export default function FeeAndFundForm({ feeOrFund }: any) {
+  // Lấy ngày hiện tại động từ hệ thống
+  const currentDate = new Date(); // Sử dụng thời điểm hiện tại thực tế
+  const formattedCurrentDate = formatDate(currentDate);
+
   const [formValues, setFormValues] = useState({
     id: feeOrFund?.id || "",
     name: feeOrFund?.name || "",
     unitPrice: feeOrFund?.unitPrice || "",
     description: feeOrFund?.description || "",
     feeTypeEnum: feeOrFund?.feeTypeEnum || "",
-    createdAt: feeOrFund?.createdAt || "",
+    createdAt: feeOrFund?.createdAt || formattedCurrentDate,
   });
   const typeOptions = ["DepartmentFee", "ContributionFund", "VehicleFee"];
 
-  const handleChange = (e: any) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     setFormValues((prevValues) => ({
       ...prevValues,
@@ -51,6 +62,12 @@ export default function FeeAndFundForm({ feeOrFund }: any) {
     }
   }
 
+  const handleUnitPriceClick = () => {
+    if (formValues.feeTypeEnum === "VehicleFee") {
+      alert("Unit Price không áp dụng cho VehicleFee, phí được tính tự động dựa trên số lượng xe (70.000 VND/xe máy, 1.200.000 VND/ô tô).");
+    }
+  };
+
   const handleDelete = async (e: any) => {
     e.preventDefault();
 
@@ -73,10 +90,10 @@ export default function FeeAndFundForm({ feeOrFund }: any) {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     // console.log(formValues);
-    
+
     const data = {
       name: formValues.name,
-      unitPrice: formValues.unitPrice,
+      unitPrice: formValues.feeTypeEnum === "VehicleFee" ? "1" : formValues.unitPrice,
       description: formValues.description,
       feeTypeEnum: formValues.feeTypeEnum,
     }
@@ -89,7 +106,7 @@ export default function FeeAndFundForm({ feeOrFund }: any) {
       }, 1500);
 
       toast.success(`Add ${formValues.name} Successfull!`);
-      
+
     } catch (err) {
       console.error(err);
     }
@@ -117,12 +134,15 @@ export default function FeeAndFundForm({ feeOrFund }: any) {
 
       <FormField>
         <FormField.Label label={"Unit Price"} />
-        <FormField.Input
-          id="unitPrice"
-          type="text"
-          value={formValues.unitPrice}
-          onChange={handleChange}
-        />
+        <div onClick={handleUnitPriceClick}>
+          <FormField.Input
+            id="unitPrice"
+            type="text"
+            value={formValues.unitPrice}
+            onChange={handleChange}
+          // readOnly={formValues.feeTypeEnum === "VehicleFee"}
+          />
+        </div>
       </FormField>
 
       <FormField>

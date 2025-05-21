@@ -61,7 +61,7 @@ export default function Invoice() {
         </Modal.Open>
       </div>
 
-      <InvoiceTable keyword={keyword}/>
+      <InvoiceTable keyword={keyword} />
 
       <Modal.Window id="createInvoice" name="Create Invoice">
         <InvoiceTDN />
@@ -81,6 +81,7 @@ function InvoiceTDN() {
     feeType: "",
     fundType: "",
     description: "",
+    apartmentId: "",
   });
 
   const [selectedFees, setSelectedFees] = useState<string[]>([]);
@@ -123,6 +124,10 @@ function InvoiceTDN() {
     }));
   };
 
+  const handleApartmentIdClick = () => {
+    alert("Nhập MÃ CĂN HỘ nếu muốn chỉ định rõ số căn hộ. Nếu trống sẽ áp dụng tất cả");
+  };
+
   const addFee = () => {
     const selectedFee = feeOptions.find(
       (fee) => fee.name === formValues.feeType
@@ -155,6 +160,7 @@ function InvoiceTDN() {
       name: formValues.name,
       description: formValues.description,
       feeIds: combinedFeeIds, // Gửi mảng gộp
+      apartmentId: formValues.apartmentId || null, // Gửi null nếu trống
     };
 
     try {
@@ -183,6 +189,7 @@ function InvoiceTDN() {
       feeType: "",
       fundType: "",
       description: "",
+      apartmentId: "",
     });
     setSelectedFees([]);
     setSelectedFunds([]);
@@ -213,6 +220,18 @@ function InvoiceTDN() {
                 value={formValues.name}
                 onChange={handleChange}
               />
+            </FormField>
+
+            <FormField>
+              <FormField.Label label={"Mã căn hộ"} />
+              <div onClick={handleApartmentIdClick}>
+                <FormField.Input
+                  id="apartmentId"
+                  type="text"
+                  value={formValues.apartmentId}
+                  onChange={handleChange}
+                />
+              </div>
             </FormField>
           </Form.Fields>
 

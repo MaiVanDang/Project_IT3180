@@ -25,7 +25,7 @@ export default function FeeAndFundTable({ keyword }: FeeAndFundTableProps) {
         url = `http://localhost:8080/api/v1/fees?page=${page}&size=10`;
       }
       const response = await axios.get(url);
-
+      console.log(response);
       if (keyword) {
         setFeesAndFunds([response.data.data]);
         setTotalPages(1);
