@@ -46,7 +46,7 @@ public class Apartment {
     Resident owner;
     Long ownerPhone;
 
-    @JsonIgnore  //hide this field
+    @JsonIgnore
     @OneToMany(mappedBy = "apartment", cascade = CascadeType.ALL)  //cascade: used for auto updating at fees and invoices table
     List<InvoiceApartment> invoiceApartments;
 
