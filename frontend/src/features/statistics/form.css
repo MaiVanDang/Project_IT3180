@@ -146,6 +146,31 @@ td {
     font-size: 14px;
   }
 }
+
+.voluntary-fund {
+  text-align: center;
+  /* Căn giữa nội dung */
+  margin: 10px 0;
+  /* Thêm khoảng cách trên dưới để đẹp hơn */
+}
+
+.voluntary-fund label {
+  display: inline-block;
+  /* Đảm bảo label không bị co lại */
+  margin-bottom: 5px;
+  /* Khoảng cách giữa label và input */
+}
+
+.voluntary-fund .inputFund {
+  width: 150px;
+  /* Đặt chiều rộng cố định để đồng đều */
+  padding: 5px;
+  text-align: center;
+  /* Căn giữa giá trị trong input */
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
 /* 
 .divPay {
 
@@ -164,7 +189,7 @@ td {
   background-color: var(--color-green-500);
   color: white;
   border-radius: 8px;
-  
+
   i {
     font-size: 22px;
   }
