@@ -31,15 +31,14 @@ const ChartBox = styled.div`
 `;
 
 interface Apartment {
-  status: string; // Trạng thái của căn hộ
+  status: string; 
 }
 
 interface ProcessedData {
-  status: string; // Tên nhóm trạng thái
-  value: number; // Số lượng căn hộ thuộc nhóm
+  status: string; 
+  value: number; 
 }
 
-// Mảng bắt đầu với các nhóm trạng thái và giá trị ban đầu
 const startData: ProcessedData[] = [
   { status: "Business", value: 0 },
   { status: "Residential", value: 0 },
@@ -47,30 +46,26 @@ const startData: ProcessedData[] = [
 ];
 
 async function prepareData(): Promise<ProcessedData[]> {
-  // Hàm lấy dữ liệu căn hộ từ API
+
   const fetchApartments = async (): Promise<Apartment[]> => {
     try {
       const response = await axios.get(
         "http://localhost:8080/api/v1/apartments?size=999"
       );
-      return response.data.data.result; // Trả về danh sách căn hộ
+      return response.data.data.result; 
     } catch (error) {
       console.error("Lỗi khi lấy dữ liệu căn hộ:", error);
-      return []; // Trả về mảng rỗng khi lỗi
-    }
+      return []; 
   };
 
-  // Hàm tăng giá trị của một nhóm trong mảng
   function incArrayValue(arr: ProcessedData[], field: string): ProcessedData[] {
     return arr.map((obj) =>
       obj.status === field ? { ...obj, value: obj.value + 1 } : obj
     );
   }
 
-  // Lấy dữ liệu từ API
   const apartments = await fetchApartments();
 
-  // Xử lý dữ liệu
   const data = apartments
     .reduce<ProcessedData[]>((arr, cur) => {
       const status = cur.status;
@@ -79,7 +74,7 @@ async function prepareData(): Promise<ProcessedData[]> {
       if (status === "Vacant") return incArrayValue(arr, "Vacant");
       return arr;
     }, startData)
-    .filter((obj) => obj.value > 0); // Lọc ra các nhóm có giá trị lớn hơn 0
+    .filter((obj) => obj.value > 0); 
 
   return data;
 }

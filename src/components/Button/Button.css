@@ -19,16 +19,14 @@ Button.hidden {
     border: 2px solid #fff;
 }
 
-/* Hiệu ứng hover cho nút bình thường */
 Button:hover {
-    background-color: #16325B; /* Màu nền thay đổi khi hover */
-    color: #ffffff; /* Giữ màu chữ */
-    transform: scale(1.05); /* Phóng to 5% */
+    background-color: #16325B; 
+    color: #ffffff; 
+    transform: scale(1.05); 
 }
 
-/* Hiệu ứng hover cho nút ẩn */
 Button.hidden:hover {
-    background-color: rgba(255, 255, 255, 0.1); /* Thêm nền mờ trắng khi hover */
-    border-color: #fff; /* Giữ màu viền */
-    color: #fff; /* Giữ màu chữ */
+    background-color: rgba(255, 255, 255, 0.1); 
+    border-color: #fff; 
+    color: #fff;
 }

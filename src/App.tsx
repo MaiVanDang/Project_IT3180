@@ -1,10 +1,10 @@
+import { GlobalStyles } from "./GlobalStyles";
+import Notification from "./components/Notification";
 import { NotFound } from "./pages/not-found/NotFound";
 import HomePage from "./pages/home-page/HomePage";
 import LoginSignUp from "./pages/login-signup/LoginSignUp";
 import DashBoard from "./pages/dashboard/DashBoard";
 import { AuthCallbackComponent } from "./services/AuthCallback";
-import { GlobalStyles } from "./GlobalStyles";
-import Notification from "./components/Notification";
 
 import { Route, Routes, BrowserRouter as Router } from "react-router-dom";
 import ProtectedRoute from "./auth/ProtectedRoute";

@@ -81,9 +81,6 @@ interface PaginationProps {
   onPageChange: (page: number) => void;
 }
 
-// const P = styled.p`
-//   color: black;
-// `;
 
 export default function Pagination({
   totalPages,
@@ -145,7 +142,7 @@ export default function Pagination({
       updatedPageNumbers.push(totalPages);
     }
 
-    setPageNumbers(updatedPageNumbers); // Cập nhật lại pageNumbers
+    setPageNumbers(updatedPageNumbers); 
   }, [currentPage, totalPages]);
 
   if (totalPages <= 1) return null;

@@ -11,13 +11,6 @@
     font-family: 'Poppins', sans-serif;
 }
 
-/* #root {
-    background-color: inherit;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-} */
-
 ::-webkit-scrollbar {
     width: 5px;
     background: transparent;
