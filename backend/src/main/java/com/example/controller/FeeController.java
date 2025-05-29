@@ -24,7 +24,7 @@ public class FeeController {
     private final FeeService feeService;
 
     //fetch all fees
-    @GetMapping()
+    @GetMapping("")
     public ResponseEntity<PaginatedResponse<Fee>> getAllFees(@Filter Specification<Fee> spec,
                                                              @RequestParam(value = "page", defaultValue = "1") int page,
                                                              @RequestParam(value = "size", defaultValue = "10") int size) {
@@ -41,14 +41,14 @@ public class FeeController {
     }
 
     //create new fee
-    @PostMapping()
+    @PostMapping("")
     public ResponseEntity<Fee> createFee(@Valid @RequestBody FeeCreateRequest apiFee) throws Exception {
         Fee fee = this.feeService.createFee(apiFee);
         return ResponseEntity.status(HttpStatus.CREATED).body(fee);
     }
 
     //update fee
-    @PutMapping()
+    @PutMapping("/")
     public ResponseEntity<Fee> updateFee(@RequestBody Fee apiFee) throws Exception {
         Fee fee = this.feeService.updateFee(apiFee);
         return ResponseEntity.status(HttpStatus.OK).body(fee);

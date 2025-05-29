@@ -62,7 +62,7 @@ export default function ApartmentsTable({ keyword, filterString = "" }: Apartmen
   return (
     <Table columns="1.5fr 2fr 2fr 1.5fr 1.2fr 1.2fr 1fr">
       <Table.Header>
-        <div>Số phòng</div>
+        <div>Mã căn hộ</div>
         <div>Chủ hộ</div>
         <div>Số điện thoại</div>
         <div>Số lượng thành viên</div>

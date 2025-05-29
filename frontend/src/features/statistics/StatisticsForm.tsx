@@ -104,9 +104,8 @@ const StatisticsForm = ({ statistic }: StatisticsFormProps) => {
         {dataInvoice.map((invoice, index) => (
           <div key={index}>
             <div
-              className={`billing-header ${
-                invoice.paymentStatus === "Unpaid" ? "incomplete" : "complete"
-              }`}
+              className={`billing-header ${invoice.paymentStatus === "Unpaid" ? "incomplete" : "complete"
+                }`}
               onClick={() => toggleDropdown(invoice.id)}
             >
               <span className="spanText">{invoice.name}</span>
@@ -137,8 +136,8 @@ const StatisticsForm = ({ statistic }: StatisticsFormProps) => {
                         <td>
                           {fee.name === "Fund 2"
                             ? (
-                                fee.amount + (voluntaryFund[invoice.id] || 0)
-                              ).toLocaleString()
+                              fee.amount + (voluntaryFund[invoice.id] || 0)
+                            ).toLocaleString()
                             : fee.amount.toLocaleString()}{" "}
                           VND
                         </td>
@@ -153,7 +152,7 @@ const StatisticsForm = ({ statistic }: StatisticsFormProps) => {
                       fee.feeType === "ContributionFund" && (
                         <div className="voluntary-fund" key={fee.name}>
                           <label>
-                            Enter voluntary contribution for{" "}
+                            Nhập{" "}
                             <strong>{fee.name}</strong>:{" "}
                             <input
                               className="inputFund"
@@ -204,9 +203,8 @@ const StatisticsForm = ({ statistic }: StatisticsFormProps) => {
         {dataUtility.map((utility, index) => (
           <div key={index}>
             <div
-              className={`billing-header ${
-                utility.paymentStatus === "Unpaid" ? "incomplete" : "complete"
-              }`}
+              className={`billing-header ${utility.paymentStatus === "Unpaid" ? "incomplete" : "complete"
+                }`}
               onClick={() => toggleDropdown(utility.id)}
             >
               <span className="spanText">{utility.name}</span>

@@ -1,4 +1,4 @@
-package main.java.com.example.exception;
+package com.example.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.*;

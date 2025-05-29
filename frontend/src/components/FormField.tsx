@@ -46,6 +46,9 @@ interface InputProps {
   value: any;
   onChange: any;
   readOnly?: boolean; // Thêm thuộc tính readOnly vào đây
+  // Thêm các thuộc tính mới
+  // disabled?: boolean; // Thêm thuộc tính disabled
+  // onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void;
 }
 
 interface SelectProps {
@@ -61,7 +64,7 @@ function Label({ label }: LabelProps) {
 }
 
 function Input({ id, type, value, onChange, readOnly }: InputProps) {
-  return <StyledInput id={id} type={type} value={value} onChange={onChange} readOnly={readOnly}/>;
+  return <StyledInput id={id} type={type} value={value} onChange={onChange} readOnly={readOnly} />;
 }
 
 function Select({ id, options, value, onChange }: SelectProps) {

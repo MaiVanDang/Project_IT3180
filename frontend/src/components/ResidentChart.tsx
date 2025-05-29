@@ -96,7 +96,8 @@ export default function ResidentsChart() {
       setData(result);
     };
     fetchData();
-  }, [data]);
+  }, []);
+  // }, [data]);
 
   // Tính tổng giá trị để hiển thị ở giữa PieChart
   const totalValue = data.reduce((total, entry) => total + entry.value, 0);

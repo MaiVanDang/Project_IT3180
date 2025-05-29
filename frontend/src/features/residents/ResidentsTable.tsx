@@ -19,24 +19,24 @@ export default function ResidentsTable({ keyword, filterString = "" }: Residents
   const apiResidents = async (page: number = 1) => {
     try {
       setIsLoading(true);
-      
+
       // Xác định filter dựa trên tìm kiếm đơn giản hoặc nâng cao
       let filter = "";
-      
+
       // Ưu tiên sử dụng filterString từ tìm kiếm nâng cao nếu có
       if (filterString) {
         filter = filterString;
-      } 
+      }
       // Nếu không có filterString nhưng có keyword, tạo filter đơn giản
       else if (keyword) {
         filter = `name~'*${keyword}*'`;
       }
-      
+
       const response = await axios.get(
-       // `http://localhost:8080/api/v1/residents?size=10&page=${page}${filter ? `&filter=${filter}` : ""}`
-       `http://localhost:8080/api/v1/residents/all?size=10&page=${page}${filter ? `&filter=${filter}` : ""}`
+        // `http://localhost:8080/api/v1/residents?size=10&page=${page}${filter ? `&filter=${filter}` : ""}`
+        `http://localhost:8080/api/v1/residents/all?size=10&page=${page}${filter ? `&filter=${filter}` : ""}`
       );
-      
+
       setResidents(response.data.data.result);
       setTotalPages(response.data.data.totalPages);
       setTotalElements(response.data.data.totalElements);
@@ -69,7 +69,7 @@ export default function ResidentsTable({ keyword, filterString = "" }: Residents
       <Table columns="0.5fr 1fr 1.5fr 1.5fr 1fr 1.5fr 1fr 1fr">
         <Table.Header>
           <div>STT</div>
-          <div>Room</div>
+          <div>Căn hộ</div>
           <div>Name</div>
           <div>CCCD</div>
           <div>Gender</div>
@@ -84,10 +84,10 @@ export default function ResidentsTable({ keyword, filterString = "" }: Residents
           </Table.Row>
         ) : residents.length > 0 ? (
           residents.map((resident, index) => (
-            <ResidentRow 
-              key={resident.id} 
-              resident={resident} 
-              index={(curPage - 1) * 10 + index} 
+            <ResidentRow
+              key={resident.id}
+              resident={resident}
+              index={(curPage - 1) * 10 + index}
             />
           ))
         ) : (

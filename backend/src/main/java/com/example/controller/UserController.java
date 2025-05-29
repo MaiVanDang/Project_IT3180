@@ -26,8 +26,8 @@ public class UserController {
     private final UserService userService;
 
     //fetch all users
-    @Operation(summary = "Get list of users", description = "abcabc")
-    @GetMapping()
+    @Operation(summary = "Get list of users", description = "Get list of users")
+    @GetMapping("/")
     public ResponseEntity<List<UserResponse>> getAllUser() {
         List<UserResponse> userResponses = this.userService.fetchAllUserResponse();
         return ResponseEntity.status(HttpStatus.OK).body(userResponses);
