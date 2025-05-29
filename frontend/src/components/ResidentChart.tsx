@@ -104,7 +104,7 @@ export default function ResidentsChart() {
 
   return (
     <ChartBox>
-      <Heading as="h2">Residents Summary</Heading>
+      <Heading as="h2">Thống kê người dân</Heading>
       <ResponsiveContainer width="100%" height={240}>
         <PieChart>
           <Pie

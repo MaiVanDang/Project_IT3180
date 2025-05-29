@@ -14,17 +14,16 @@ const AboutUs = () => {
             </div>
 
             <div className="about-us__right">
-              <div className="right__title">About Us</div>
+              <div className="right__title">Liên hệ</div>
 
               <div className="right__desc">
-                At HustCity, we are dedicated to providing exceptional services
-                with a focus on reliability, innovation, and customer
-                satisfaction. Our team is committed to exceeding expectations by
-                creating personalized experiences that meet your unique needs.
-                We prioritize transparency, integrity, and the highest quality
-                standards in everything we do. Whether you're looking for
-                tailored solutions or expert advice, we're here to support you
-                every step of the way.
+                Chung cư BlueMoon tọa lạc ngay ngã tư Văn Phú được khởi công xây dựng năm 2021
+                và hoàn thành vào 2023. Chung cư được xây dựng trên diện tích 450m2, gồm 30 tầng,
+                tầng 1 làm kiot, 4 tầng đế, 24 tầng nhà ở và 1 tầng penhouse. Khi sở hữu nhà chung cư,
+                hộ gia đình hoặc chủ sở hữu sẽ phải bỏ ra một khoản kinh phí đóng định kỳ để thực
+                hiện vận hành và bảo dưỡng thường xuyên về cơ sở vật chất. Các hoạt động quản lý và
+                thu phí ở chung cư BlueMoon được thực hiện bởi Ban quản trị chung cư do nhân dân
+                sinh sống ở đây bầu ra.
               </div>
 
               <div className="right__icon">

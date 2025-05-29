@@ -6,16 +6,16 @@ import StatisticsTable from "../../../features/statistics/StatisticsTable";
 import { useState } from "react";
 
 export default function Apartments() {
-   const [keyword, setKeyword] = useState('');
+  const [keyword, setKeyword] = useState('');
   return (
     <>
       <Row type="horizontal">
-        <Heading as="h1">Statistics</Heading>
+        <Heading as="h1">Thống kê</Heading>
         <AddAndSearch title="Add Appartment" setKeyword={setKeyword} keyword={keyword}>
           <StatisticsForm />
         </AddAndSearch>
       </Row>
-      <StatisticsTable keyword={keyword}/>
+      <StatisticsTable keyword={keyword} />
     </>
   );
 }

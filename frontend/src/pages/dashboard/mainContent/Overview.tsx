@@ -68,7 +68,7 @@ export default function Overview() {
     <>
       <Row type="horizontal">
         <Heading as="h1">
-          <>Overview</>
+          <>Tổng quan</>
           <Calendar />
         </Heading>
       </Row>

@@ -6,7 +6,7 @@ const TechMarquee = () => {
             <div className="home__tech">
                 <div className="container-tdn2">
                     <div className="inner-tech">
-                        <div className="desc">Technology used</div>
+                        <div className="desc">Công nghệ sử dụng</div>
                         <div className="wrap-tdn fade-out">
                             <div className="tech__main">
                                 <div className="tech__item">

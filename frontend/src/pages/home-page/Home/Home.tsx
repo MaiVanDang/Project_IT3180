@@ -9,7 +9,7 @@ const Home = () => {
 
   useEffect(() => {
     const typed = new Typed(typedElement.current, {
-      strings: ["Discover And Manage Exclusive Condo Amenities"],
+      strings: ["Dự án quản lý chung cư đô thị BlueMoon"],
       typeSpeed: 80,
       backSpeed: 90,
       loop: true
@@ -43,21 +43,21 @@ const Home = () => {
               </div>
 
               <div className="left__desc">
-                Your All-in-One Solution for Condominium Management
+                Phiên bản đầu tiên
               </div>
               {/* <Link to="/signin">
 
               </Link> */}
               <div className="left__button">
                 <a href="/signin" className="button button__active">
-                  Sign In
+                  Đăng nhập
                 </a>
                 <a
                   href="#contact-us"
                   className="button button-contact"
                   onClick={handleSmoothScroll} // Attach smooth scroll handler
                 >
-                  Contact Us
+                  Liên hệ
                 </a>
               </div>
             </div>

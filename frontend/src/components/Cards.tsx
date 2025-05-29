@@ -91,34 +91,34 @@ export default function Cards() {
     <CardsStyled>
       <Card
         icon={<PiBuildingApartmentLight size={40} />}
-        title="Total Apartments"
+        title="Căn hộ"
         value={numOfApartments}
         color="cyan"
-        iconDetails="Apartments"
+        iconDetails="Căn hộ"
       />
 
       <Card
         icon={<MdFamilyRestroom size={40} />}
-        title="Total Residents"
+        title="Người dân"
         value={numOfResidents}
         color="emerald"
-        iconDetails="Residents"
+        iconDetails="Người dân"
       />
 
       <Card
         icon={<FaCar size={40} />}
-        title="Total Vehicles"
+        title="Phương tiện"
         value={numOfVehicles} // Hiển thị giá trị đã chia cho 1 triệu
         color="pink"
-        iconDetails="Vehicles"
+        iconDetails="Phương tiện"
       />
 
       <Card
         icon={<GiPayMoney size={40} />}
-        title="Last 30 days"
+        title="30 ngày qua"
         value={`₫${(totalAmountLast30Days / 1000000).toFixed(2)}M`} // Hiển thị giá trị đã chia cho 1 triệu
         color="purple"
-        iconDetails="Open Invoices"
+        iconDetails="Hãy mở hóa đơn"
       />
     </CardsStyled>
   );

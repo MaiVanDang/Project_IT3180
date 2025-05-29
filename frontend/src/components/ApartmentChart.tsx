@@ -105,7 +105,7 @@ export default function ApartmentChart() {
   const totalValue = data.reduce((total, entry) => total + entry.value, 0);
   return (
     <ChartBox>
-      <Heading as="h2">Apartment Summary</Heading>
+      <Heading as="h2">Thống kê căn hộ</Heading>
       <ResponsiveContainer width="100%" height={240}>
         <PieChart>
           <Pie

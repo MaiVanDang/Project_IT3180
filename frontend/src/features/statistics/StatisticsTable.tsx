@@ -51,7 +51,7 @@ const StatisticsTable = ({ keyword }: StatisticsTableProps) => {
     <Table columns="1fr 1fr">
       <Table.Header>
         <div>Mã căn hộ</div>
-        <div>Actions</div>
+        <div>Hành động</div>
       </Table.Header>
 
       {statistics.map((statistic: any) => (

@@ -133,7 +133,7 @@ export default function VehicleForm({ vehicle }: any) {
         </FormField>
 
         {<FormField>
-          <FormField.Label label={"Date"} />
+          <FormField.Label label={"Thời gian"} />
           <FormField.Input
             id="registerDate"
             type="date"
@@ -143,7 +143,7 @@ export default function VehicleForm({ vehicle }: any) {
         </FormField>}
 
         <FormField>
-          <FormField.Label label={"Number"} />
+          <FormField.Label label={"Biển số"} />
           <FormField.Input
             id="id"
             type="text"
@@ -158,7 +158,7 @@ export default function VehicleForm({ vehicle }: any) {
         onChange={handleChange}
         id="category"
         options={vehicleTypeOptions}
-        label={"Type:"}
+        label={"Loại:"}
       ></Selector>
 
       {vehicle ? (

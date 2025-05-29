@@ -27,7 +27,7 @@ const SideBar = () => {
       <div className="logo_content">
         <div className="logo">
           {/* <img src={assets.logo} alt="" /> */}
-          <div className="logo_name">HustCity.</div>
+          <div className="logo_name">HustCity</div>
         </div>
         <i
           className="bx bx-menu"
@@ -39,51 +39,51 @@ const SideBar = () => {
         <li>
           <Link to="/dashboard/">
             <i className="bx bxs-grid-alt"></i>
-            <span className="links_name">Dashboard</span>
+            <span className="links_name">Bảng điều khiển</span>
           </Link>
-          <span className="tooltip">Dashboard</span>
+          <span className="tooltip">Bảng điều khiển</span>
         </li>
         <li>
           <Link to="/dashboard/residents">
             <i className="bx bx-user"></i>
-            <span className="links_name">Resident Management</span>
+            <span className="links_name">Quản lý cư dân</span>
           </Link>
-          <span className="tooltip">Resident Management</span>
+          <span className="tooltip">Quản lý cư dân</span>
         </li>
         <li>
           <Link to="/dashboard/apartments">
             <i className='bx bxs-home'></i>
-            <span className="links_name">Apartment Management</span>
+            <span className="links_name">Quản lý căn hộ</span>
           </Link>
-          <span className="tooltip">Apartment Management</span>
+          <span className="tooltip">Quản lý căn hộ</span>
         </li>
         <li>
           <Link to="/dashboard/vehicles">
             <i className='bx bxs-car'></i>
-            <span className="links_name">Vehicle Management</span>
+            <span className="links_name">Quản lý phương tiện</span>
           </Link>
-          <span className="tooltip">Vehicle Management</span>
+          <span className="tooltip">Quản lý phương tiện</span>
         </li>
         <li>
           <Link to="/dashboard/fee-and-fund">
             <i className='bx bx-money-withdraw'></i>
-            <span className="links_name">Fee and Fund</span>
+            <span className="links_name">Phí và Quỹ</span>
           </Link>
-          <span className="tooltip">Fee and Fund</span>
+          <span className="tooltip">Phí và Quỹ</span>
         </li>
         <li>
           <Link to="/dashboard/statistics">
             <i className="bx bx-folder"></i>
-            <span className="links_name">Statistics</span>
+            <span className="links_name">Thống kê</span>
           </Link>
-          <span className="tooltip">Statistics</span>
+          <span className="tooltip">Thống kê</span>
         </li>
         <li>
           <Link to="/dashboard/invoices">
             <i className='bx bxs-file-plus'></i>
-            <span className="links_name">Invoices</span>
+            <span className="links_name">Hóa đơn</span>
           </Link>
-          <span className="tooltip">Invoices</span>
+          <span className="tooltip">Hóa đơn</span>
         </li>
       </ul>
       <div className="profile_content">
@@ -95,7 +95,7 @@ const SideBar = () => {
             />
             <div className="name_role">
               <div className="name">{name || "Unknown User"}</div>
-              <div className="role">Manager</div>
+              <div className="role">Quản lý</div>
             </div>
           </div>
           <i
