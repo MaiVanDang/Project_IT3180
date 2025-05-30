@@ -25,7 +25,7 @@ public class ResidentController {
     private final ResidentService residentService;
 
     // fetch all residents
-    @GetMapping()
+    @GetMapping("")
     public ResponseEntity<PaginatedResponse<Resident>> getAllResidents(@Filter Specification<Resident> spec,
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size) {
@@ -51,7 +51,7 @@ public class ResidentController {
     }
 
     // Create new resident
-    @PostMapping("/")
+    @PostMapping("")
     public ResponseEntity<Resident> createNewUser(@Valid @RequestBody ResidentCreateRequest apiResident) {
         Resident resident = this.residentService.createResident(apiResident);
         return new ResponseEntity<>(resident, HttpStatus.CREATED);
@@ -65,7 +65,7 @@ public class ResidentController {
     }
 
     // Update resident
-    @PutMapping("/")
+    @PutMapping("")
     public ResponseEntity<Resident> updateUser(@RequestBody ResidentUpdateRequest apiResident) throws Exception {
         Resident resident = this.residentService.updateResident(apiResident);
         return ResponseEntity.ok(resident);
