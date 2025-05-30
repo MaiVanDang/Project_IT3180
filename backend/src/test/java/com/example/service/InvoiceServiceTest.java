@@ -1,4 +1,4 @@
-package com.hththn.dev.department_manager;
+package com.example.service;
 
 import com.example.constant.FeeTypeEnum;
 import com.example.constant.PaymentEnum;
@@ -6,7 +6,6 @@ import com.example.dto.request.InvoiceRequest;
 import com.example.dto.response.*;
 import com.example.entity.*;
 import com.example.repository.*;
-import com.example.service.InvoiceService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,7 +21,6 @@ import org.springframework.data.jpa.domain.Specification;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -78,7 +76,7 @@ public class InvoiceServiceTest {
         feeInvoice = new FeeInvoice();
         feeInvoice.setFee(fee);
         feeInvoice.setInvoice(invoice);
-        invoice.setFeeInvoices(Arrays.asList(feeInvoice));
+        invoice.setFeeInvoices(List.of(feeInvoice));
 
         apartment = new Apartment();
         apartment.setAddressNumber(1L);
@@ -100,7 +98,7 @@ public class InvoiceServiceTest {
                 .invoiceId("INV001")
                 .name("Monthly Invoice")
                 .description("Monthly fees")
-                .feeIds(Arrays.asList(1L))
+                .feeIds(List.of(1L))
                 .apartmentId(1L)
                 .build();
     }
@@ -338,13 +336,18 @@ public class InvoiceServiceTest {
 
         // Debug: Kiểm tra feeList trước khi assert
         System.out.println("FeeList size: " + result.getFeeList().size());
+        if (result.getFeeList() != null) {
+            result.getFeeList().forEach(fee -> System.out.println("Fee: " + fee));
+        } else {
+            System.out.println("FeeList is null");
+        }
 
         // Assertions
         assertNotNull(result);
         assertEquals("INV001", result.getId());
-        assertEquals(0, result.getIsActive());
+        assertEquals(1, result.getIsActive());
         assertEquals(1, result.getFeeList().size());
-        verify(invoiceRepository, times(2)).findById("INV001");
+        verify(invoiceRepository, times(1)).findById("INV001");
         verify(invoiceRepository).save(any(Invoice.class));
         verify(feeInvoiceRepository, atLeastOnce()).save(any(FeeInvoice.class));
         verify(invoiceApartmentRepository).save(any(InvoiceApartment.class));
@@ -357,7 +360,7 @@ public class InvoiceServiceTest {
                 .invoiceId("INV001")
                 .name("Monthly Invoice")
                 .description("Monthly fees")
-                .feeIds(Arrays.asList(1L))
+                .feeIds(List.of(1L))
                 .apartmentId(null)
                 .build();
         // Lần đầu trả về Optional.empty() để kiểm tra hóa đơn không tồn tại
@@ -374,14 +377,17 @@ public class InvoiceServiceTest {
         InvoiceResponse result = invoiceService.createInvoice(invoiceRequest);
 
         // Debug: Kiểm tra feeList trước khi assert
-        System.out.println("FeeList size: " + result.getFeeList().size());
+        System.out.println("Invoice isActive (before save): " + invoice.getIsActive());
+        System.out.println("Invoice updatedAt (before save): " + invoice.getUpdatedAt());
+        System.out.println("InvoiceResponse isActive: " + result.getIsActive());
+        System.out.println("InvoiceResponse lastUpdated: " + result.getLastUpdated());
 
         // Assertions
         assertNotNull(result);
         assertEquals("INV001", result.getId());
-        assertEquals(0, result.getIsActive());
+        assertEquals(1, result.getIsActive());
         assertEquals(1, result.getFeeList().size());
-        verify(invoiceRepository, times(2)).findById("INV001");
+        verify(invoiceRepository, times(1)).findById("INV001");
         verify(invoiceRepository).save(any(Invoice.class));
         verify(feeInvoiceRepository, atLeastOnce()).save(any(FeeInvoice.class));
         verify(invoiceApartmentRepository, atLeastOnce()).save(any(InvoiceApartment.class));

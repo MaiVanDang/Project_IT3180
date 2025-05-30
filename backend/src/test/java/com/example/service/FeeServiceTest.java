@@ -1,4 +1,4 @@
-package com.hththn.dev.department_manager;
+package com.example.service;
 
 import com.example.constant.FeeTypeEnum;
 import com.example.dto.request.FeeCreateRequest;
@@ -6,7 +6,6 @@ import com.example.dto.response.ApiResponse;
 import com.example.dto.response.PaginatedResponse;
 import com.example.entity.Fee;
 import com.example.repository.FeeRepository;
-import com.example.service.FeeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

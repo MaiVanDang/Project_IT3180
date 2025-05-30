@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
@@ -172,7 +173,7 @@ public class InvoiceService {
         invoice.setId(request.getInvoiceId());
         invoice.setName(request.getName());
         invoice.setDescription(request.getDescription());
-        invoiceRepository.save(invoice); //Must save here early to have information provided for side table 'fee_invoice'
+        invoice = invoiceRepository.save(invoice); //Must save here early to have information provided for side table 'fee_invoice'
 
         List<Fee> feeList = feeRepository.findAllById(request.getFeeIds()); //Get all feeIDs from the request and save it as a list
         for (Fee f : feeList) {
@@ -203,8 +204,8 @@ public class InvoiceService {
             }
         }
 
-        LocalDate localDate = Objects.requireNonNull(invoiceRepository.findById(invoice.getId()).orElse(null)).getUpdatedAt().atZone(ZoneId.systemDefault()).toLocalDate();
-        // LocalDate localDate = invoice.getUpdatedAt().atZone(ZoneId.systemDefault()).toLocalDate();
+        Instant updatedAt = invoice.getUpdatedAt();
+        LocalDate localDate = (updatedAt != null) ? updatedAt.atZone(ZoneId.systemDefault()).toLocalDate() : LocalDate.now();
         List<Fee> feeListAfterCreate = feeInvoiceRepository.findFeesByInvoiceId(request.getInvoiceId());
 
         return InvoiceResponse.builder()

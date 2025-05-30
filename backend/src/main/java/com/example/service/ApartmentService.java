@@ -107,13 +107,16 @@ public class ApartmentService {
                 .orElseThrow(() -> new EntityNotFoundException("Not found apartment " + addressID));
 
         List<Long> requestResidents = Optional.ofNullable(request.getResidents()).orElse(Collections.emptyList());
-        List<Resident> validResidents = residentRepository.findAllById(requestResidents);
+        List<Resident> validResidents = new ArrayList<>(residentRepository.findAllById(requestResidents)); // Tạo bản sao mutable
 
         // update owner + apartment status
         if (request.getOwnerId() != null) {
             Resident newOwner = residentService.fetchResidentById(request.getOwnerId());
             Resident currentOwner = apartment.getOwner();
-            validResidents.add(newOwner);
+            // Chỉ thêm newOwner nếu chưa có trong danh sách
+            if (!validResidents.contains(newOwner)) {
+                validResidents.add(newOwner);
+            }
             if (currentOwner != null && !currentOwner.getId().equals(newOwner.getId())) {
                 currentOwner.setApartment(null); // Clear the current owner's apartment
                 residentRepository.save(currentOwner);
