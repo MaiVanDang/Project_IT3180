@@ -1,38 +1,80 @@
 import { useState } from "react";
 import styled from "styled-components";
-
 import AddAndSearch from "../../../components/AddAndSearch";
 import Heading from "../../../components/Heading";
-import Row from "../../../components/Row";
 import VehiclesTable from "../../../features/vehicles/VehiclesTable";
 import VehicleForm from "../../../features/vehicles/VehicleForm";
 import VehicleSearchForm from "../../../features/vehicles/VehicleSearchFrom";
 import Button from "../../../components/Button";
+import { HiOutlineAdjustmentsHorizontal, HiXMark, HiPlus } from "react-icons/hi2";
 
-import { HiOutlineAdjustmentsHorizontal, HiXMark } from "react-icons/hi2";
-
-const StyledRow = styled(Row)<{ showForm: boolean }>`
-  margin-bottom: ${(props) => (props.showForm ? "0" : "2rem")};
+const PageContainer = styled.div`
+  padding: 2rem;
+  background-color: var(--color-grey-50);
 `;
 
-const AdvancedSearchContainer = styled.div`
+const HeaderContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 2rem;
-  padding: 1.2rem 2.4rem;
-  border-radius: 8px;
-  background-color: var(--color-grey-0);
-  border: 1px solid var(--color-grey-100);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  flex-wrap: wrap;
+  gap: 1.5rem;
 `;
 
-const FilterButtonContainer = styled.div`
-  margin-left: 1rem;
+const TitleContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+`;
+
+const ActionContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+`;
+
+const AdvancedSearchContainer = styled.div<{ $isOpen: boolean }>`
+  margin-bottom: 2rem;
+  padding: ${({ $isOpen }) => ($isOpen ? "1.5rem" : "0")};
+  border-radius: 12px;
+  background-color: var(--color-grey-0);
+  border: 1px solid var(--color-grey-200);
+  box-shadow: var(--shadow-sm);
+  max-height: ${({ $isOpen }) => ($isOpen ? "500px" : "0")};
+  overflow: hidden;
+  transition: all 0.3s ease;
+`;
+
+const FilterButton = styled(Button) <{ $active: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: ${({ $active }) =>
+    $active ? "var(--color-primary-600)" : "var(--color-grey-100)"};
+  color: ${({ $active }) =>
+    $active ? "var(--color-grey-0)" : "var(--color-grey-700)"};
+  
+  &:hover {
+    background-color: ${({ $active }) =>
+    $active ? "var(--color-primary-700)" : "var(--color-grey-200)"};
+  }
+`;
+
+const AddButton = styled(Button)`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 `;
 
 export default function Vehicles() {
+  // Giữ nguyên tất cả các state và logic xử lý
   const [keyword, setKeyword] = useState("");
   const [filterString, setFilterString] = useState("");
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
 
+  // Giữ nguyên hàm xử lý tìm kiếm
   const handleAdvancedSearch = (filters: string) => {
     setFilterString(filters);
     if (filters) setKeyword("");
@@ -52,46 +94,58 @@ export default function Vehicles() {
   };
 
   return (
-    <>
-      <StyledRow type="horizontal" showForm={showAdvancedSearch}>
-        <Heading as="h1">Quản lý phương tiện</Heading>
-        <div style={{ display: "flex", alignItems: "center" }}>
+    <PageContainer>
+      <HeaderContainer>
+        <TitleContainer>
+          <Heading as="h1">Quản lý phương tiện</Heading>
+        </TitleContainer>
+
+        <ActionContainer>
           <AddAndSearch
             title="Thêm phương tiện"
             placeholder="Tìm theo tên cư dân, biển số xe..."
             setKeyword={handleBasicSearch}
             keyword={keyword}
+            renderButton={(open) => (
+              <AddButton
+                variation="primary"
+                size="medium"
+                onClick={open}
+              >
+                <HiPlus /> Thêm mới
+              </AddButton>
+            )}
           >
             <VehicleForm />
           </AddAndSearch>
 
-          <FilterButtonContainer>
-            <Button
-              variation={showAdvancedSearch ? "primary" : "secondary"}
-              size="small"
-              onClick={toggleAdvancedSearch}
-            >
-              {showAdvancedSearch ? (
-                <>
-                  Đóng bộ lọc <HiXMark />
-                </>
-              ) : (
-                <>
-                  Bộ lọc <HiOutlineAdjustmentsHorizontal />
-                </>
-              )}
-            </Button>
-          </FilterButtonContainer>
-        </div>
-      </StyledRow>
+          <FilterButton
+            variation={showAdvancedSearch ? "primary" : "secondary"}
+            size="medium"
+            onClick={toggleAdvancedSearch}
+            $active={showAdvancedSearch}
+          >
+            {showAdvancedSearch ? (
+              <>
+                <HiXMark /> Đóng bộ lọc
+              </>
+            ) : (
+              <>
+                <HiOutlineAdjustmentsHorizontal /> Bộ lọc nâng cao
+              </>
+            )}
+          </FilterButton>
+        </ActionContainer>
+      </HeaderContainer>
 
-      {showAdvancedSearch && (
-        <AdvancedSearchContainer>
+      <AdvancedSearchContainer $isOpen={showAdvancedSearch}>
+        {showAdvancedSearch && (
           <VehicleSearchForm onSearch={handleAdvancedSearch} />
-        </AdvancedSearchContainer>
-      )}
+        )}
+      </AdvancedSearchContainer>
 
+      {/* Giữ nguyên props truyền vào VehiclesTable */}
       <VehiclesTable filterString={filterString} keyword={keyword} />
-    </>
+    </PageContainer>
   );
 }

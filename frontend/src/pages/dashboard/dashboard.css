@@ -3,7 +3,7 @@
 }
 
 .dashboard-content {
-  background-color: var(--color-grey-100);
+  background-color: beige;
   padding: 20px;
   overflow: scroll;
   max-width: 100%;

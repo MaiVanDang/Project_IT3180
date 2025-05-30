@@ -11,7 +11,7 @@ export default function FeesAndFunds() {
   return (
     <Modal>
       <Row type="horizontal">
-        <Heading as="h1">Fee and Fund</Heading>
+        <Heading as="h1">Phí và Quỹ</Heading>
         <AddAndSearch title="Thêm loại phí" setKeyword={setKeyword} keyword={keyword}>
           <FeeAndFundForm />
         </AddAndSearch>

@@ -9,16 +9,16 @@
 @tailwind utilities;
 
 .main-sign-in-up {
-    background:
-        linear-gradient(to right, #e2e2e2, red),
-        url('http://localhost:5173/assets/logo.png');
+    background: url('http://localhost:5173/icon.png') no-repeat center top;
     background-size: cover;
-    background-position: center;
+    background-position: center calc(50% - 50px);
+    /* dịch lên trên 20px */
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
 }
+
 
 .container-dn {
     background-color: #fff;
