@@ -44,6 +44,7 @@ export default function VehiclesTable({ keyword }: VehiclesTableProps) {
         <div>Căn hộ</div>
         <div>Loại</div>
         <div>Ngày đăng kí</div>
+        <div>Hành động</div>
       </Table.Header>
 
       {vehicles.map((vehicle) => (

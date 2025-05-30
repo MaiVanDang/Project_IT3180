@@ -1,29 +1,71 @@
+import { useState } from "react";
+import styled from "styled-components";
 import AddAndSearch from "../../../components/AddAndSearch";
 import Heading from "../../../components/Heading";
-import Row from "../../../components/Row";
 import ResidentsTable from "../../../features/residents/ResidentsTable";
 import ResidentForm from "../../../features/residents/ResidentForm";
 import ResidentSearchForm from "../../../features/residents/ResidentSearchForm";
-import { useEffect, useState } from "react";
-import styled from "styled-components";
 import Button from "../../../components/Button";
-import { HiOutlineAdjustmentsHorizontal, HiXMark } from "react-icons/hi2";
+import { HiOutlineAdjustmentsHorizontal, HiXMark, HiPlus } from "react-icons/hi2";
 
-const StyledRow = styled(Row)`
-  margin-bottom: ${(props) => (props.showForm ? "0" : "2rem")};
+const PageContainer = styled.div`
+  padding: 2rem;
+  background-color: var(--color-grey-50);
 `;
 
-const AdvancedSearchContainer = styled.div`
+const HeaderContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 2rem;
-  padding: 1.2rem 2.4rem;
-  border-radius: 8px;
-  background-color: var(--color-grey-0);
-  border: 1px solid var(--color-grey-100);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  flex-wrap: wrap;
+  gap: 1.5rem;
 `;
 
-const FilterButtonContainer = styled.div`
-  margin-left: 1rem;
+const TitleContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+`;
+
+const ActionContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+`;
+
+const AdvancedSearchContainer = styled.div<{ $isOpen: boolean }>`
+  margin-bottom: 2rem;
+  padding: ${({ $isOpen }) => ($isOpen ? "1.5rem" : "0")};
+  border-radius: 12px;
+  background-color: var(--color-grey-0);
+  border: 1px solid var(--color-grey-200);
+  box-shadow: var(--shadow-sm);
+  max-height: ${({ $isOpen }) => ($isOpen ? "500px" : "0")};
+  overflow: hidden;
+  transition: all 0.3s ease;
+`;
+
+const FilterButton = styled(Button) <{ $active: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: ${({ $active }) =>
+    $active ? "var(--color-primary-600)" : "var(--color-grey-100)"};
+  color: ${({ $active }) =>
+    $active ? "var(--color-grey-0)" : "var(--color-grey-700)"};
+  
+  &:hover {
+    background-color: ${({ $active }) =>
+    $active ? "var(--color-primary-700)" : "var(--color-grey-200)"};
+  }
+`;
+
+const AddButton = styled(Button)`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 `;
 
 export default function Residents() {
@@ -31,68 +73,74 @@ export default function Residents() {
   const [filterString, setFilterString] = useState('');
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
 
-  // Xử lý tìm kiếm nâng cao
   const handleAdvancedSearch = (filters) => {
     setFilterString(filters);
-    if (filters) setKeyword(''); // Xóa keyword để tránh xung đột
+    if (filters) setKeyword('');
   };
 
-  // Xử lý từ tìm kiếm cơ bản
   const handleBasicSearch = (value) => {
     setKeyword(value);
-    setFilterString(''); // Xóa filter string khi dùng tìm kiếm cơ bản
+    setFilterString('');
   };
 
-  // Toggle hiển thị form tìm kiếm nâng cao
   const toggleAdvancedSearch = () => {
     setShowAdvancedSearch((prev) => !prev);
-    
-    // Nếu đóng form tìm kiếm nâng cao và không có keyword, reset filterString
     if (showAdvancedSearch && !keyword) {
       setFilterString('');
     }
   };
 
   return (
-    <>
-      <StyledRow type="horizontal" showForm={showAdvancedSearch}>
-        <Heading as="h1">Quản lý cư dân</Heading>
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <AddAndSearch 
-            title="Thêm cư dân" 
-            setKeyword={handleBasicSearch} 
+    <PageContainer>
+      <HeaderContainer>
+        <TitleContainer>
+          <Heading as="h1">Quản lý cư dân</Heading>
+        </TitleContainer>
+
+        <ActionContainer>
+          <AddAndSearch
+            title="Thêm cư dân"
+            setKeyword={handleBasicSearch}
             keyword={keyword}
+            renderButton={(open) => (
+              <AddButton
+                variation="primary"
+                size="medium"
+                onClick={open}
+              >
+                <HiPlus /> Thêm mới
+              </AddButton>
+            )}
           >
             <ResidentForm />
           </AddAndSearch>
-          
-          <FilterButtonContainer>
-            <Button 
-              variation={showAdvancedSearch ? "primary" : "secondary"}
-              size="small"
-              onClick={toggleAdvancedSearch}
-            >
-              {showAdvancedSearch ? (
-                <>
-                  Đóng bộ lọc <HiXMark />
-                </>
-              ) : (
-                <>
-                  Bộ lọc <HiOutlineAdjustmentsHorizontal />
-                </>
-              )}
-            </Button>
-          </FilterButtonContainer>
-        </div>
-      </StyledRow>
 
-      {showAdvancedSearch && (
-        <AdvancedSearchContainer>
+          <FilterButton
+            variation={showAdvancedSearch ? "primary" : "secondary"}
+            size="medium"
+            onClick={toggleAdvancedSearch}
+            $active={showAdvancedSearch}
+          >
+            {showAdvancedSearch ? (
+              <>
+                <HiXMark /> Đóng bộ lọc
+              </>
+            ) : (
+              <>
+                <HiOutlineAdjustmentsHorizontal /> Bộ lọc nâng cao
+              </>
+            )}
+          </FilterButton>
+        </ActionContainer>
+      </HeaderContainer>
+
+      <AdvancedSearchContainer $isOpen={showAdvancedSearch}>
+        {showAdvancedSearch && (
           <ResidentSearchForm onSearch={handleAdvancedSearch} />
-        </AdvancedSearchContainer>
-      )}
+        )}
+      </AdvancedSearchContainer>
 
       <ResidentsTable keyword={keyword} filterString={filterString} />
-    </>
+    </PageContainer>
   );
 }

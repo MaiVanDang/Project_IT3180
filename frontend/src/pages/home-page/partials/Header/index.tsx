@@ -13,14 +13,14 @@ const Header = () => {
             <div className="home-page__header">
                 <div className="inner-header">
                     <div className="header__logo" onClick={handleClickLogo}>
-                        .HustCity
+                        HustCity
                     </div>
                     <div className="header__menu">
                         <ul className='inner-menu'>
-                            <li className='item-menu active'><a href="#home">Home</a></li>
-                            <li className='item-menu'><a href="#about-us">About</a></li>
-                            <li className='item-menu'><a href="#our-team">Our Team</a></li>
-                            <li className='item-menu'><a href="#contact-us">Contact</a></li>
+                            <li className='item-menu active'><a href="#home">Trang chủ</a></li>
+                            <li className='item-menu'><a href="#about-us">Thông tin</a></li>
+                            <li className='item-menu'><a href="#our-team">Thành viên</a></li>
+                            <li className='item-menu'><a href="#contact-us">Liên hệ</a></li>
                         </ul>
                     </div>
                 </div>

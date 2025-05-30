@@ -7,7 +7,7 @@ const OurTeam = () => {
       <section className="our-team" id="our-team">
         <div className="container-tdn">
           <div className="inner-our-team">
-            <div className="our-team__title">Our Team</div>
+            <div className="our-team__title">Thành viên</div>
             <div className="our-team__members">
               <Members />
             </div>

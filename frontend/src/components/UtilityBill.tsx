@@ -102,7 +102,7 @@ const UtilityBill = () => {
 
           {dataExcel.map((room, index) => (
             <Table.Row size="small" key={index}>
-              <div>{room.apartment}</div>
+              <div>{room.apartmentId}</div>
               <div>{room.electricity}</div>
               <div>{room.water}</div>
               <div>{room.internet}</div>

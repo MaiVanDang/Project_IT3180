@@ -70,12 +70,12 @@ export default function ResidentsTable({ keyword, filterString = "" }: Residents
         <Table.Header>
           <div>STT</div>
           <div>Căn hộ</div>
-          <div>Name</div>
+          <div>Họ tên</div>
           <div>CCCD</div>
-          <div>Gender</div>
-          <div>DOB</div>
-          <div>Status</div>
-          <div>Actions</div>
+          <div>Giới tính</div>
+          <div>Ngày sinh</div>
+          <div>Trạng thái</div>
+          <div>Hành động</div>
         </Table.Header>
 
         {isLoading ? (

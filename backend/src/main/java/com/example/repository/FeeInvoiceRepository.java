@@ -21,6 +21,4 @@ public interface FeeInvoiceRepository extends JpaRepository<FeeInvoice, Long>, J
     @Transactional
     @Query("DELETE FROM FeeInvoice fi WHERE fi.invoice.id = :invoiceId")
     void deleteByInvoiceId(String invoiceId);
-
-
 }

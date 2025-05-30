@@ -68,7 +68,7 @@ export default function ApartmentFeeChart() {
 
   return (
     <ChartBox>
-      <Heading as="h2">Apartment Fee Collection Chart</Heading>
+      <Heading as="h2">Biểu đồ thu phí chung cư</Heading>
       <ResponsiveContainer width="100%" height={400}>
         <RechartsBarChart
           data={feeData}

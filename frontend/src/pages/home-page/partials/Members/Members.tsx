@@ -22,7 +22,7 @@ const Members = () => {
       fullName: "Nguyễn Hoài Nam",
       sid: "20225653",
       img: assets.Nam,
-      role: "Backend Team",
+      role: "Frontend Team",
     },
     {
       fullName: "Bùi Quốc Bảo",

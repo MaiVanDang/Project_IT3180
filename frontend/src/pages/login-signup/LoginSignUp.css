@@ -9,18 +9,22 @@
 @tailwind utilities;
 
 .main-sign-in-up {
-    background: linear-gradient(to right, #e2e2e2, #c9d6ff);
+    background: url('http://localhost:5173/icon.png') no-repeat center top;
+    background-size: cover;
+    background-position: center calc(50% - 50px);
+    /* dịch lên trên 20px */
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
 }
 
-.container-dn{
+
+.container-dn {
     background-color: #fff;
     border-radius: 30px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35);
-    position: relative; 
+    position: relative;
     overflow: hidden;
     width: 920px;
     height: 620px;
@@ -29,10 +33,10 @@
 }
 
 .container-dn p {
-   font-size: 14px; 
-   line-height: 20px;
-   letter-spacing: 0.3px;
-   margin: 20px 0;
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0.3px;
+    margin: 20px 0;
 }
 
 .container-dn a {
@@ -40,7 +44,7 @@
     font-size: 13px;
     text-decoration: none;
     margin: 15px 0 0 180px;
-    
+
 }
 
 .container-dn a:hover {
@@ -131,11 +135,15 @@
 }
 
 @keyframes move {
-    0%, 49.99% {
+
+    0%,
+    49.99% {
         opacity: 0;
         z-index: 1;
     }
-    50%, 100% {
+
+    50%,
+    100% {
         opacity: 1;
         z-index: 5;
     }
@@ -159,9 +167,9 @@
 }
 
 .toggle {
-    background-color: #512da8;
+    background-color: #52b9a0;
     height: 100%;
-    background: linear-gradient(to right, #5c6bc0, #512da8);
+    background: linear-gradient(to right, #5c6bc0, #7ce6ac);
     color: #fff;
     position: relative;
     left: -100%;
@@ -231,16 +239,22 @@
 
 /* Hiệu ứng hover cho nút bình thường */
 .btn-tdn:hover {
-    background-color: #16325B; /* Màu nền thay đổi khi hover */
-    color: #ffffff; /* Giữ màu chữ */
-    transform: scale(1.05); /* Phóng to 5% */
+    background-color: #16325B;
+    /* Màu nền thay đổi khi hover */
+    color: #ffffff;
+    /* Giữ màu chữ */
+    transform: scale(1.05);
+    /* Phóng to 5% */
 }
 
 /* Hiệu ứng hover cho nút ẩn */
 .btn-tdn-2:hover {
-    background-color: rgba(255, 255, 255, 0.1); /* Thêm nền mờ trắng khi hover */
-    border-color: #fff; /* Giữ màu viền */
-    color: #fff; /* Giữ màu chữ */
+    background-color: rgba(255, 255, 255, 0.1);
+    /* Thêm nền mờ trắng khi hover */
+    border-color: #fff;
+    /* Giữ màu viền */
+    color: #fff;
+    /* Giữ màu chữ */
 }
 
 .error {
@@ -251,4 +265,3 @@
     position: relative;
     right: 30px;
 }
-  

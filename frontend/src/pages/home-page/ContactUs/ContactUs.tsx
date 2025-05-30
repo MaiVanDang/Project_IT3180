@@ -84,7 +84,7 @@ const ContactUs = () => {
         <>
             <section className="contact-us" id="contact-us">
                 <div className="inner-contact-us">
-                    <div className="contact-us__title">Contact Us</div>
+                    <div className="contact-us__title">Liên hệ với chúng tôi</div>
                     <div className="contact-us__body">
                         <div className="body__left">
                             {info.map((item, index) => (
@@ -104,7 +104,7 @@ const ContactUs = () => {
                                     <input
                                         type="text"
                                         name="name"
-                                        placeholder="Your Name"
+                                        placeholder="Tên của bạn"
                                         onChange={(e) => handleChangeInput(e, 'name')}
                                         value={stateFormContact.name}
                                         required
@@ -115,16 +115,16 @@ const ContactUs = () => {
                                     <input
                                         type="email"
                                         name="email"
-                                        placeholder="Your Email"
+                                        placeholder="Email của bạn"
                                         onChange={(e) => handleChangeInput(e, 'email')}
                                         value={stateFormContact.email}
                                         required
                                     />
-                             </div>
+                                </div>
                                 <div className="form__input">
                                     <textarea
                                         name="message"
-                                        placeholder="Your Message"
+                                        placeholder="Lời nhắn"
                                         onChange={(e) => handleChangeInput(e, 'message')}
                                         value={stateFormContact.message}
                                         required
@@ -134,7 +134,7 @@ const ContactUs = () => {
 
                                 <div className="form__input">
                                     <button type="submit" disabled={isSubmitting}>
-                                        {isSubmitting ? "Submitting..." : "Submit"}
+                                        {isSubmitting ? "Đang gửi..." : "Gửi"}
                                     </button>
                                 </div>
                             </form>

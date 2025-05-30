@@ -103,50 +103,52 @@ export default function ResidentsChart() {
   const totalValue = data.reduce((total, entry) => total + entry.value, 0);
 
   return (
-    <ChartBox>
-      <Heading as="h2">Residents Summary</Heading>
-      <ResponsiveContainer width="100%" height={240}>
-        <PieChart>
-          <Pie
-            data={data}
-            cx="35%"
-            cy="50%"
-            innerRadius={85}
-            outerRadius={110}
-            fill="#8884d8"
-            paddingAngle={3}
-            dataKey="value"
-            nameKey="status"
-          >
-            {data.map((entry, index) => (
-              <Cell
-                key={`cell-${index}`}
-                fill={COLORS[index % COLORS.length]}
-              />
-            ))}
-            {/* Hiển thị tổng số ở giữa biểu đồ */}
-            <Label
-              value={totalValue}
-              position="center"
-              fontSize={60}
-              fontWeight="bold"
-              fill="#333"
-            />
-          </Pie>
-          <Tooltip />
-          <Legend
-            verticalAlign="middle"
-            align="right"
-            layout="vertical"
-            iconSize={15}
-            width={150}
-            iconType="circle"
-            formatter={(value, entry, index) =>
-              `${entry.payload.status}: ${entry.payload.value}`
-            }
-          />
-        </PieChart>
-      </ResponsiveContainer>
-    </ChartBox>
+    // <ChartBox>
+    //   <Heading as="h2">Thống kê người dân</Heading>
+    //   <ResponsiveContainer width="100%" height={240}>
+    //     <PieChart>
+    //       <Pie
+    //         data={data}
+    //         cx="35%"
+    //         cy="50%"
+    //         innerRadius={85}
+    //         outerRadius={110}
+    //         fill="#8884d8"
+    //         paddingAngle={3}
+    //         dataKey="value"
+    //         nameKey="status"
+    //       >
+    //         {data.map((entry, index) => (
+    //           <Cell
+    //             key={`cell-${index}`}
+    //             fill={COLORS[index % COLORS.length]}
+    //           />
+    //         ))}
+    //         {/* Hiển thị tổng số ở giữa biểu đồ */}
+    //         <Label
+    //           value={totalValue}
+    //           position="center"
+    //           fontSize={60}
+    //           fontWeight="bold"
+    //           fill="#333"
+    //         />
+    //       </Pie>
+    //       <Tooltip />
+    //       <Legend
+    //         verticalAlign="middle"
+    //         align="right"
+    //         layout="vertical"
+    //         iconSize={15}
+    //         width={150}
+    //         iconType="circle"
+    //         formatter={(value, entry, index) =>
+    //           `${entry.payload.status}: ${entry.payload.value}`
+    //         }
+    //       />
+    //     </PieChart>
+    //   </ResponsiveContainer>
+    // </ChartBox>
+    <>
+    </>
   );
 }

@@ -21,10 +21,10 @@ export default function VehicleRow({ vehicle }: any) {
       <div>{formatDate(registerDate)}</div>
       <Modal>
         <Modal.Open id="details">
-          <button>Details</button>
+          <button>Chi tiết</button>
         </Modal.Open>
 
-        <Modal.Window id="details" name="Vehicle Details">
+        <Modal.Window id="details" name="Thông tin phương tiện">
           <VehicleForm vehicle={vehicle} />
         </Modal.Window>
       </Modal>

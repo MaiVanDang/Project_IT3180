@@ -52,12 +52,12 @@ export default function FeeAndFundTable({ keyword }: FeeAndFundTableProps) {
     <>
       <Table columns="0.5fr 1.5fr 2.5fr 2fr 2fr 1.2fr">
         <Table.Header>
-          <div>ID</div>
-          <div>Name</div>
-          <div>Description</div>
-          <div>Unit Price</div>
-          <div>Type</div>
-          <div>Actions</div>
+          <div>Mã ID</div>
+          <div>Tên</div>
+          <div>Mô tả</div>
+          <div>Đơn giá</div>
+          <div>Loại</div>
+          <div>Hành động</div>
         </Table.Header>
 
         {feesAndFunds.map((feeOrFund: any) => (

@@ -68,8 +68,8 @@ export default function Overview() {
     <>
       <Row type="horizontal">
         <Heading as="h1">
-          <>Overview</>
-          <Calendar />
+          <>Tổng quan</>
+          {/* <Calendar /> */}
         </Heading>
       </Row>
 
