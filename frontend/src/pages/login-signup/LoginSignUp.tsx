@@ -56,7 +56,7 @@ const LoginSignUp = () => {
     }
 
     try {
-      const response = await axios.post<{data: UserData}>("http://localhost:8080/api/v1/users/register", {
+      const response = await axios.post<{ data: UserData }>("http://localhost:8080/api/v1/users/register", {
         name: registerData.name,
         email: registerData.email,
         password: registerData.password,
@@ -93,9 +93,9 @@ const LoginSignUp = () => {
         email: loginData.email,
         password: loginData.password,
       });
-  
+
       const { accessToken, user } = response.data.data;
-  
+
       // Lưu thông tin đăng nhập vào localStorage nếu chọn "Remember me"
       if (remember) {
         localStorage.setItem("accessToken", accessToken);
@@ -109,7 +109,7 @@ const LoginSignUp = () => {
         localStorage.setItem("accessToken", accessToken);
         localStorage.setItem("name", user.name);
       }
-  
+
       navigate("/dashboard");
       toast.success("Đăng nhập thành công!");
     } catch (error) {
@@ -123,7 +123,7 @@ const LoginSignUp = () => {
       console.error("Login Failed!", error);
     }
   };
-  
+
   const loginWithGoogle = async () => {
     try {
       const url = await AuthService.authenticate("google");
@@ -163,7 +163,7 @@ const LoginSignUp = () => {
       }
     }
   }, []);
-  
+
   return (
     <div className="main-sign-in-up">
       <div className={`container-dn ${isSignUpActive ? "active" : ""}`} id="container">
@@ -229,7 +229,7 @@ const LoginSignUp = () => {
         <div className="form-container sign-in">
           <form onSubmit={handleLogin}>
             <div className="header">
-              <h1 className="text">Sign In</h1>
+              <h1 className="text">Đăng nhập</h1>
               <div className="underline"></div>
             </div>
             <div className="inputs">
@@ -259,11 +259,11 @@ const LoginSignUp = () => {
             <div className="mt-4 mr-20 remember-container">
               <input className="scale-110" type="checkbox" id="remember" checked={remember} onChange={handleRememberChange} />
               <label className="ml-2 text-base remember" htmlFor="remember">
-                Remember me
+                Ghi nhớ mật khẩu
               </label>
             </div>
             <button className="btn-tdn" type="submit">
-              Sign In
+              Đăng nhập
             </button>
 
             {/* Login with Google Button */}
@@ -298,7 +298,7 @@ const LoginSignUp = () => {
                     d="M130.55 50.479c24.514 0 41.05 10.589 50.479 19.438l36.844-35.974C195.245 12.91 165.798 0 130.55 0 79.49 0 35.393 29.301 13.925 71.947l42.211 32.783c10.59-31.477 39.891-54.251 74.414-54.251"
                   ></path>
                 </svg>
-                Sign in with Google
+                Đăng nhập với Google
               </button>
             </div>
           </form>
@@ -308,21 +308,21 @@ const LoginSignUp = () => {
         <div className="toggle-container">
           <div className="toggle">
             <div className="toggle-panel toggle-left">
-              <h1 className="text-tdn">Welcome Back!</h1>
+              <h1 className="text-tdn">Xin chào!</h1>
               <p>
-                If you already have an account, <strong>Sign in</strong>
+                Nếu bạn đã có tài khoản, <strong>Đăng nhập</strong>
               </p>
               <button id="login" className="btn-tdn-2" onClick={() => handleToggle("login")} type="button">
-                Sign In
+                Đăng nhập
               </button>
             </div>
             <div className="toggle-panel toggle-right">
-              <h1 className="text-tdn">Hello Friend!</h1>
+              <h1 className="text-tdn">Xin chào!</h1>
               <p>
-                Do you have an accout? If not, please <strong>Sign Up</strong>
+                Nếu bạn không có tài khoản? <strong>Đăng ký</strong>
               </p>
               <button id="register" className="btn-tdn-2" onClick={() => handleToggle("register")} type="button">
-                Sign Up
+                Đăng ký
               </button>
             </div>
           </div>

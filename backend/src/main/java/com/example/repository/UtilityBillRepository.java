@@ -16,5 +16,4 @@ public interface UtilityBillRepository extends JpaRepository<UtilityBill, Long>,
 
     @Query("SELECT u FROM UtilityBill u WHERE u.apartment.addressNumber = :apartmentId")
     List<UtilityBill> findByApartmentId(@Param("apartmentId") Long apartmentId);
-
 }
