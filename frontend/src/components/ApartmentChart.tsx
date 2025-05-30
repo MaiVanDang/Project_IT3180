@@ -104,50 +104,51 @@ export default function ApartmentChart() {
 
   const totalValue = data.reduce((total, entry) => total + entry.value, 0);
   return (
-    <ChartBox>
-      <Heading as="h2">Thống kê căn hộ</Heading>
-      <ResponsiveContainer width="100%" height={240}>
-        <PieChart>
-          <Pie
-            data={data}
-            cx="35%"
-            cy="50%"
-            innerRadius={85}
-            outerRadius={110}
-            fill="#8884d8"
-            paddingAngle={3}
-            dataKey="value"
-            nameKey="status"
-          >
-            {data.map((entry, index) => (
-              <Cell
-                key={`cell-${index}`}
-                fill={COLORS[index % COLORS.length]}
-              />
-            ))}
-            <Label
-              value={totalValue}
-              position="center"
-              fontSize={60}
-              fontWeight="bold"
-              fill="#333"
-            />
-          </Pie>
-          <Tooltip />
-          <Legend
-            cx="20%"
-            verticalAlign="middle"
-            align="right"
-            layout="vertical"
-            iconSize={15}
-            width={150}
-            iconType="circle"
-            formatter={(value, entry, index) =>
-              `${entry.payload.status}: ${entry.payload.value}`
-            }
-          ></Legend>
-        </PieChart>
-      </ResponsiveContainer>
-    </ChartBox>
+    // <ChartBox>
+    //   <Heading as="h2">Thống kê căn hộ</Heading>
+    //   <ResponsiveContainer width="100%" height={240}>
+    //     <PieChart>
+    //       <Pie
+    //         data={data}
+    //         cx="35%"
+    //         cy="50%"
+    //         innerRadius={85}
+    //         outerRadius={110}
+    //         fill="#8884d8"
+    //         paddingAngle={3}
+    //         dataKey="value"
+    //         nameKey="status"
+    //       >
+    //         {data.map((entry, index) => (
+    //           <Cell
+    //             key={`cell-${index}`}
+    //             fill={COLORS[index % COLORS.length]}
+    //           />
+    //         ))}
+    //         <Label
+    //           value={totalValue}
+    //           position="center"
+    //           fontSize={60}
+    //           fontWeight="bold"
+    //           fill="#333"
+    //         />
+    //       </Pie>
+    //       <Tooltip />
+    //       <Legend
+    //         cx="20%"
+    //         verticalAlign="middle"
+    //         align="right"
+    //         layout="vertical"
+    //         iconSize={15}
+    //         width={150}
+    //         iconType="circle"
+    //         formatter={(value, entry, index) =>
+    //           `${entry.payload.status}: ${entry.payload.value}`
+    //         }
+    //       ></Legend>
+    //     </PieChart>
+    //   </ResponsiveContainer>
+    // </ChartBox>
+    <></>
   );
 }
