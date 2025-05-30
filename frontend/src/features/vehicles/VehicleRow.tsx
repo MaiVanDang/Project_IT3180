@@ -24,7 +24,7 @@ export default function VehicleRow({ vehicle }: any) {
           <button>Details</button>
         </Modal.Open>
 
-        <Modal.Window id="details" name="Vehicle Details">
+        <Modal.Window id="details" name="Chi tiết phương tiện">
           <VehicleForm vehicle={vehicle} />
         </Modal.Window>
       </Modal>
