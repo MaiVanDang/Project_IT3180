@@ -12,12 +12,12 @@ export default function FeesAndFunds() {
     <Modal>
       <Row type="horizontal">
         <Heading as="h1">Fee and Fund</Heading>
-        <AddAndSearch title="Add Fee/Fund" setKeyword={setKeyword} keyword={keyword}>
+        <AddAndSearch title="Thêm loại phí" setKeyword={setKeyword} keyword={keyword}>
           <FeeAndFundForm />
         </AddAndSearch>
       </Row>
 
-      <FeeAndFundTable keyword={keyword}/>
+      <FeeAndFundTable keyword={keyword} />
     </Modal>
   );
 }
