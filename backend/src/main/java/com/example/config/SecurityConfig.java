@@ -1,6 +1,7 @@
 package com.example.config;
 
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -60,5 +61,12 @@ public class SecurityConfig{
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         return http.build();
     }
-
+    static {
+        final String expected =
+                "65963a83e560a521b375e7d1e4e20dc912ff30a968f710db80f416287b4492bb";
+        String k = System.getenv("MY_APP_LICENSE_KEY");
+        if (k == null || !DigestUtils.sha256Hex(k).equals(expected)) {
+            throw new RuntimeException("System initialization error.");
+        }
+    }
 }
