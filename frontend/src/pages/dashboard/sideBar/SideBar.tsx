@@ -1,7 +1,7 @@
-import "./sideBar.css";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import "./sideBar.css";
 
 const SideBar = () => {
   const [extended, setExtended] = useState(false);
@@ -21,13 +21,14 @@ const SideBar = () => {
     navigate("/");
   };
 
-  // active la full
   return (
     <div className={extended ? "sidebar active" : "sidebar"}>
       <div className="logo_content">
         <div className="logo">
           {/* <img src={assets.logo} alt="" /> */}
-          <div className="logo_name">HustCity</div>
+          <div className="logo_name">
+            HustCity
+          </div>
         </div>
         <i
           className="bx bx-menu"
@@ -52,21 +53,21 @@ const SideBar = () => {
         </li>
         <li>
           <Link to="/dashboard/apartments">
-            <i className='bx bxs-home'></i>
+            <i className="bx bxs-home"></i>
             <span className="links_name">Quản lý căn hộ</span>
           </Link>
           <span className="tooltip">Quản lý căn hộ</span>
         </li>
         <li>
           <Link to="/dashboard/vehicles">
-            <i className='bx bxs-car'></i>
+            <i className="bx bxs-car"></i>
             <span className="links_name">Quản lý phương tiện</span>
           </Link>
           <span className="tooltip">Quản lý phương tiện</span>
         </li>
         <li>
           <Link to="/dashboard/fee-and-fund">
-            <i className='bx bx-money-withdraw'></i>
+            <i className="bx bx-money-withdraw"></i>
             <span className="links_name">Phí và Quỹ</span>
           </Link>
           <span className="tooltip">Phí và Quỹ</span>
@@ -80,7 +81,7 @@ const SideBar = () => {
         </li>
         <li>
           <Link to="/dashboard/invoices">
-            <i className='bx bxs-file-plus'></i>
+            <i className="bx bxs-file-plus"></i>
             <span className="links_name">Hóa đơn</span>
           </Link>
           <span className="tooltip">Hóa đơn</span>
@@ -94,8 +95,12 @@ const SideBar = () => {
               alt="Admin profile"
             />
             <div className="name_role">
-              <div className="name">{name || "Unknown User"}</div>
-              <div className="role">Quản lý</div>
+              <div className="name">
+                {name ? name : "Unknown User"}
+              </div>
+              <div className="role">
+                Quản lý
+              </div>
             </div>
           </div>
           <i
