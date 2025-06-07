@@ -1,36 +1,35 @@
 import styled, { css } from "styled-components";
-import React, {
-  createContext,
-  useContext,
-  ReactNode,
-  ReactElement,
-} from "react";
+import React, { createContext, useContext, ReactNode, ReactElement } from "react";
 
-type CommonRowProps = {
+// Types
+interface CommonRowProps {
   columns?: string;
-  size?: "small" | "normal";
-};
+  size?: SizeType;
+}
 
-type TableProps = {
+interface TableProps {
   columns: string;
   children: ReactNode;
-};
+}
 
-type HeaderProps = {
-  size?: "small" | "normal";
+interface HeaderProps {
+  size?: SizeType;
   children: ReactNode;
-};
+}
 
-type RowProps = {
-  size?: "small" | "normal";
+interface RowProps {
+  size?: SizeType;
   children: ReactNode;
-};
+}
 
-type BodyProps<T> = {
+interface BodyProps<T> {
   data: T[];
   render: (item: T, index: number) => ReactElement;
-};
+}
 
+type SizeType = "small" | "normal";
+
+// Styled Components
 const StyledTable = styled.div`
   border: 1px solid var(--color-grey-200);
   border-radius: 14px;
@@ -49,17 +48,14 @@ const CommonRow = styled.div<CommonRowProps>`
 `;
 
 const StyledHeader = styled(CommonRow)<CommonRowProps>`
-  ${(props) =>
-    props.size === "small" &&
-    css`
-      padding: 4px 24px;
-    `}
-
-  ${(props) =>
-    props.size === "normal" &&
-    css`
-      padding: 12px 24px;
-    `}
+  ${({ size }) =>
+    size === "small"
+      ? css`
+          padding: 4px 24px;
+        `
+      : css`
+          padding: 12px 24px;
+        `}
 
   background-color: var(--color-grey-700);
   border-bottom: 1px solid var(--color-grey-100);
@@ -70,31 +66,20 @@ const StyledHeader = styled(CommonRow)<CommonRowProps>`
   border-top-left-radius: 15px;
 `;
 
-StyledHeader.defaultProps = {
-  size: "normal",
-};
-
 const StyledRow = styled(CommonRow)<CommonRowProps>`
-  ${(props) =>
-    props.size === "small" &&
-    css`
-      padding: 4px 24px;
-    `}
-
-  ${(props) =>
-    props.size === "normal" &&
-    css`
-      padding: 12px 24px;
-    `}
+  ${({ size }) =>
+    size === "small"
+      ? css`
+          padding: 4px 24px;
+        `
+      : css`
+          padding: 12px 24px;
+        `}
 
   &:not(:last-child) {
     border-bottom: 1px solid var(--color-grey-100);
   }
 `;
-
-StyledRow.defaultProps = {
-  size: "normal",
-};
 
 const StyledBody = styled.section`
   margin: 4px 0;
@@ -120,9 +105,11 @@ const Empty = styled.p`
   margin: 24px;
 `;
 
+// Context
 const TableContext = createContext<{ columns?: string }>({});
 
-export default function Table({ columns, children }: TableProps) {
+// Component
+const Table = ({ columns, children }: TableProps) => {
   return (
     <TableContext.Provider value={{ columns }}>
       <StyledTable role="table" as="header">
@@ -130,32 +117,38 @@ export default function Table({ columns, children }: TableProps) {
       </StyledTable>
     </TableContext.Provider>
   );
-}
+};
 
-function Header({ children, size }: HeaderProps) {
+// Sub-components
+const Header = ({ children, size = "normal" }: HeaderProps) => {
   const { columns } = useContext(TableContext);
   return (
     <StyledHeader role="row" columns={columns} size={size}>
       {children}
     </StyledHeader>
   );
-}
+};
 
-function Row({ children, size }: RowProps) {
+const Row = ({ children, size = "normal" }: RowProps) => {
   const { columns } = useContext(TableContext);
   return (
     <StyledRow role="row" columns={columns} size={size}>
       {children}
     </StyledRow>
   );
-}
+};
 
-function Body<T>({ data, render }: BodyProps<T>) {
-  if (!data.length) return <Empty>No data at the moment</Empty>;
+const Body = <T,>({ data, render }: BodyProps<T>) => {
+  if (!data.length) {
+    return <Empty>No data at the moment</Empty>;
+  }
   return <StyledBody>{data.map(render)}</StyledBody>;
-}
+};
 
+// Component composition
 Table.Header = Header;
 Table.Row = Row;
 Table.Body = Body;
 Table.Footer = Footer;
+
+export default Table;
