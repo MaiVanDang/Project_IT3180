@@ -24,79 +24,112 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UtilityBillService {
-    UtilityBillRepository utilityBillRepository;
-    ApartmentRepository apartmentRepository;
+    private final UtilityBillRepository utilityBillRepository;
+    private final ApartmentRepository apartmentRepository;
 
-    public List<UtilityBill> importExcel(MultipartFile file, String name) {
-        List<UtilityBill> utilityBills = new ArrayList<>();
+    /**
+     * Import utility bills from Excel file
+     */
+    public List<UtilityBill> importExcel(final MultipartFile file, final String name) {
+        final List<UtilityBill> utilityBills = new ArrayList<>();
+        
         try (InputStream inputStream = file.getInputStream()) {
-            Workbook workbook = WorkbookFactory.create(inputStream);
-            Sheet sheet = workbook.getSheetAt(0);
+            final Workbook workbook = WorkbookFactory.create(inputStream);
+            final Sheet sheet = workbook.getSheetAt(0);
 
-            for (Row row : sheet) {
-                // Skip the header row
-                if (row.getRowNum() == 0) continue;
-
-                // Check if the row is empty
-                if (row.getCell(0) == null || row.getCell(0).getCellType() == CellType.BLANK) {
-                    break; // Exit the loop if the row is empty
+            sheet.forEach(row -> {
+                if (row.getRowNum() == 0 || isEmptyRow(row)) {
+                    return;
                 }
 
-                Long apartmentId = (long) row.getCell(0).getNumericCellValue();
-                double electricity = row.getCell(1).getNumericCellValue();
-                double water = row.getCell(2).getNumericCellValue();
-                double internet = row.getCell(3).getNumericCellValue();
+                final var apartmentId = (long) row.getCell(0).getNumericCellValue();
+                final var electricity = row.getCell(1).getNumericCellValue();
+                final var water = row.getCell(2).getNumericCellValue();
+                final var internet = row.getCell(3).getNumericCellValue();
 
-                Apartment apartment = apartmentRepository.findById(apartmentId)
-                        .orElseThrow(() -> new RuntimeException("Apartment not found: " + apartmentId));
-
-                UtilityBill utilityBill = UtilityBill.builder()
-                        .apartment(apartment)
-                        .apartmentId(apartmentId)
-                        .electricity(electricity)
-                        .water(water)
-                        .internet(internet)
-                        .name(name)
-                        .paymentStatus(PaymentEnum.Unpaid)
-                        .build();
-
+                final var apartment = findApartmentById(apartmentId);
+                
+                final var utilityBill = buildUtilityBill(apartment, apartmentId, electricity, water, internet, name);
                 utilityBills.add(utilityBill);
-            }
+            });
 
-            // Save to database
-            utilityBillRepository.saveAll(utilityBills);
+            return this.utilityBillRepository.saveAll(utilityBills);
         } catch (Exception e) {
-            throw new RuntimeException("Error while reading Excel file", e);
+            throw new RuntimeException("Failed to process Excel file", e);
         }
-        return utilityBills;
     }
 
-    public PaginatedResponse<UtilityBill> fetchUtilityBills(Specification<UtilityBill> spec, Pageable pageable) {
-        Page<UtilityBill> pageUtilityBill = utilityBillRepository.findAll(spec, pageable);
-        PaginatedResponse<UtilityBill> page = new PaginatedResponse<>();
-        page.setPageSize(pageable.getPageSize());
-        page.setCurPage(pageable.getPageNumber());
-        page.setTotalPages(pageUtilityBill.getTotalPages());
-        page.setTotalElements(pageUtilityBill.getNumberOfElements());
-        page.setResult(pageUtilityBill.getContent());
-        return page;
+    /**
+     * Fetch paginated utility bills
+     */
+    public PaginatedResponse<UtilityBill> fetchUtilityBills(
+            final Specification<UtilityBill> spec, 
+            final Pageable pageable) {
+        final var pageUtilityBill = this.utilityBillRepository.findAll(spec, pageable);
+        
+        return PaginatedResponse.<UtilityBill>builder()
+                .pageSize(pageable.getPageSize())
+                .curPage(pageable.getPageNumber())
+                .totalPages(pageUtilityBill.getTotalPages())
+                .totalElements(pageUtilityBill.getNumberOfElements())
+                .result(pageUtilityBill.getContent())
+                .build();
     }
 
-    public List<UtilityBill> fetchUtilityBillsByApartmentId(Long id) {
-        return utilityBillRepository.findByApartmentId(id);
+    /**
+     * Fetch utility bills by apartment ID
+     */
+    public List<UtilityBill> fetchUtilityBillsByApartmentId(final Long id) {
+        return Optional.ofNullable(id)
+                .map(this.utilityBillRepository::findByApartmentId)
+                .orElse(new ArrayList<>());
     }
 
+    /**
+     * Update utility bill payment status
+     */
     @Transactional
-    public UtilityBill updateUtilityBill (Long id) throws RuntimeException {
-        UtilityBill utilityBill = utilityBillRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Not found id " + id));
+    public UtilityBill updateUtilityBill(final Long id) {
+        final var utilityBill = this.utilityBillRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(
+                    String.format("Utility bill with id %d not found", id)));
+                    
         utilityBill.setPaymentStatus(PaymentEnum.Paid);
-        return utilityBillRepository.save(utilityBill);
+        return this.utilityBillRepository.save(utilityBill);
     }
 
+    // Private helper methods
+    private boolean isEmptyRow(final Row row) {
+        return row.getCell(0) == null || row.getCell(0).getCellType() == CellType.BLANK;
+    }
+
+    private Apartment findApartmentById(final Long apartmentId) {
+        return this.apartmentRepository.findById(apartmentId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                    String.format("Apartment with id %d not found", apartmentId)));
+    }
+
+    private UtilityBill buildUtilityBill(
+            final Apartment apartment,
+            final Long apartmentId,
+            final double electricity,
+            final double water,
+            final double internet,
+            final String name) {
+        return UtilityBill.builder()
+                .apartment(apartment)
+                .apartmentId(apartmentId)
+                .electricity(electricity)
+                .water(water)
+                .internet(internet)
+                .name(name)
+                .paymentStatus(PaymentEnum.Unpaid)
+                .build();
+    }
 }
