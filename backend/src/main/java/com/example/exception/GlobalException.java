@@ -1,6 +1,5 @@
 package com.example.exception;
 
-
 import com.google.api.client.auth.oauth2.TokenResponseException;
 import com.example.dto.response.ApiResponse;
 import org.springframework.http.HttpStatus;
@@ -17,22 +16,23 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalException {
+
     @ExceptionHandler(value = {
             UserInfoException.class,
             UsernameNotFoundException.class,
             RuntimeException.class
     })
     public ResponseEntity<ApiResponse<Object>> handleIdException(Exception ex) {
-        ApiResponse<Object> res = new ApiResponse<Object>();
-        res.setCode(HttpStatus.BAD_REQUEST.value()); //400
+        ApiResponse<Object> res = new ApiResponse<>();
+        res.setCode(HttpStatus.BAD_REQUEST.value());
         res.setMessage(ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
     }
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiResponse<Object>> handleBadCredentialsException(BadCredentialsException ex) {
-        ApiResponse<Object> res = new ApiResponse<Object>();
-        res.setCode(HttpStatus.UNAUTHORIZED.value());  // 401 Unauthorized
+        ApiResponse<Object> res = new ApiResponse<>();
+        res.setCode(HttpStatus.UNAUTHORIZED.value());
         res.setMessage("Invalid username or password");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(res);
     }
@@ -56,9 +56,9 @@ public class GlobalException {
     }
 
     @ExceptionHandler(TokenResponseException.class)
-    public ResponseEntity<ApiResponse<Object>> handleTokenResponseException(TokenResponseException ex){
-        ApiResponse<Object> res = new ApiResponse<Object>();
-        res.setCode(HttpStatus.BAD_REQUEST.value());  // 400 Bad request
+    public ResponseEntity<ApiResponse<Object>> handleTokenResponseException(TokenResponseException ex) {
+        ApiResponse<Object> res = new ApiResponse<>();
+        res.setCode(HttpStatus.BAD_REQUEST.value());
         res.setMessage("Invalid grant");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
     }
