@@ -26,29 +26,44 @@ import java.util.List;
 @RequestMapping("/api/v1/utilitybills")
 @CrossOrigin(origins = "http://localhost:5173")
 public class UtilityBillController {
+
     UtilityBillService utilityBillService;
+
     @PostMapping("/import")
-    public ResponseEntity<?> importUtilityBills(@RequestParam("file") MultipartFile file, @RequestParam("name") String name) {
-        List<UtilityBill> utilityBills = utilityBillService.importExcel(file,name);
+    public ResponseEntity<?> importUtilityBills(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("name") String name
+    ) {
+        List<UtilityBill> utilityBills = utilityBillService.importExcel(file, name);
         return ResponseEntity.ok(utilityBills);
     }
 
     @GetMapping
-    public ResponseEntity<?> getAllUtilityBills(@Filter Specification<UtilityBill> spec,
-                                                @RequestParam(value = "page", defaultValue = "1") int page,
-                                                @RequestParam(value = "size", defaultValue = "10") int size) {
+    public ResponseEntity<?> getAllUtilityBills(
+            @Filter Specification<UtilityBill> spec,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ) {
         Pageable pageable = PageRequest.of(page - 1, size);
         PaginatedResponse<UtilityBill> responses = this.utilityBillService.fetchUtilityBills(spec, pageable);
         return ResponseEntity.status(HttpStatus.OK).body(responses);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<List<UtilityBill>> getUtilityBillByApartmentId(@PathVariable("id") Long id) {
-        return ResponseEntity.status(HttpStatus.OK).body(utilityBillService.fetchUtilityBillsByApartmentId(id));
+    public ResponseEntity<List<UtilityBill>> getUtilityBillByApartmentId(
+            @PathVariable("id") Long id
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                utilityBillService.fetchUtilityBillsByApartmentId(id)
+        );
     }
 
     @PostMapping("/update/{id}")
-    public ResponseEntity<UtilityBill> updateUtilityBill(@PathVariable("id") Long id) {
-        return ResponseEntity.status(HttpStatus.OK).body(utilityBillService.updateUtilityBill(id));
+    public ResponseEntity<UtilityBill> updateUtilityBill(
+            @PathVariable("id") Long id
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                utilityBillService.updateUtilityBill(id)
+        );
     }
 }
