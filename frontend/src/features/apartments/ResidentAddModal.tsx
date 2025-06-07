@@ -1,91 +1,109 @@
 import React, { useState, useEffect } from "react";
-import "./style.css";
 import { toast } from "react-toastify";
 import axios from "axios";
+import "./style.css";
 
-interface ResidentAddModalProps {
-  onResidentsSelect: (residents: { id: number; name: string; dob: string }[]) => void;
+// Types
+interface Resident {
+  id: number;
+  name: string;
+  dob: string;
 }
 
-export default function ResidentAddModal({ onResidentsSelect }: ResidentAddModalProps) {
-  const [searchValue, setSearchValue] = useState<string>("");
-  const [suggestions, setSuggestions] = useState<string[]>([]); // Chỉ lưu danh sách tên cho gợi ý
-  const [residents, setResidents] = useState<{ id: number; name: string; dob: string }[]>([]);
-  const [selectedResidents, setSelectedResidents] = useState<{ id: number; name: string; dob: string }[]>([]);
+interface ResidentAddModalProps {
+  onResidentsSelect: (residents: Resident[]) => void;
+}
 
-  // Hàm gọi API để lấy danh sách residents
-  const apiAllResidents = async () => {
+// Constants
+const API_BASE_URL = "http://localhost:8080/api/v1";
+const API_ENDPOINTS = {
+  residents: `${API_BASE_URL}/residents`,
+};
+
+// Component
+export default function ResidentAddModal({ onResidentsSelect }: ResidentAddModalProps) {
+  // State
+  const [searchValue, setSearchValue] = useState<string>("");
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [residents, setResidents] = useState<Resident[]>([]);
+  const [selectedResidents, setSelectedResidents] = useState<Resident[]>([]);
+
+  // API Calls
+  const fetchResidents = async () => {
     try {
-      const response = await axios.get(`http://localhost:8080/api/v1/residents?size=100&page=1`);
+      const response = await axios.get(`${API_ENDPOINTS.residents}?size=100&page=1`);
       const residentsData = response.data.data.result;
 
-      // Trích xuất id, name, và dob từ API
-      const residentsList = residentsData.map((resident: any) => ({
+      const formattedResidents = residentsData.map((resident: any) => ({
         id: resident.id,
         name: resident.name,
-        dob: resident.statusDate, // Hoặc resident.dob, tùy API
+        dob: resident.statusDate,
       }));
 
-      setResidents(residentsList); // Lưu danh sách đầy đủ
-      setSuggestions(residentsList.map((resident) => resident.name)); // Chỉ lưu danh sách tên cho gợi ý
-    } catch (err) {
-      toast.error("Có lỗi xảy ra khi tải danh sách residents");
+      setResidents(formattedResidents);
+      setSuggestions(formattedResidents.map((resident: Resident) => resident.name));
+    } catch (error) {
+      toast.error("Error loading residents list");
     }
   };
 
   useEffect(() => {
-    apiAllResidents();
+    fetchResidents();
   }, []);
 
+  // Event Handlers
   const handleSearch = (value: string) => {
     setSearchValue(value);
 
-    if (value.trim() === "") {
+    if (!value.trim()) {
       setSuggestions([]);
-    } else {
-      const filteredSuggestions = residents
-        .filter((resident) => resident.name.toLowerCase().includes(value.toLowerCase()))
-        .map((resident) => resident.name); // Chỉ lấy tên để hiển thị trong gợi ý
-      setSuggestions(filteredSuggestions);
+      return;
     }
+
+    const filteredSuggestions = residents
+      .filter(resident => 
+        resident.name.toLowerCase().includes(value.toLowerCase())
+      )
+      .map(resident => resident.name);
+
+    setSuggestions(filteredSuggestions);
   };
 
   const handleSelect = (residentName: string) => {
-    // Tìm resident trong danh sách đầy đủ
-    const selectedResident = residents.find((resident) => resident.name === residentName);
-    if (selectedResident && !selectedResidents.some((r) => r.id === selectedResident.id)) {
-      setSelectedResidents([...selectedResidents, selectedResident]);
+    const selectedResident = residents.find(resident => resident.name === residentName);
+    
+    if (selectedResident && !selectedResidents.some(r => r.id === selectedResident.id)) {
+      setSelectedResidents(prev => [...prev, selectedResident]);
     }
-    setSearchValue(""); // Clear input field
-    setSuggestions([]); // Clear suggestions
+    
+    setSearchValue("");
+    setSuggestions([]);
   };
 
   const handleRemove = (residentId: number) => {
-    setSelectedResidents(selectedResidents.filter((item) => item.id !== residentId));
+    setSelectedResidents(prev => prev.filter(item => item.id !== residentId));
   };
 
   const handleSave = () => {
-    onResidentsSelect(selectedResidents); // Trả danh sách residents đã chọn về parent component
+    onResidentsSelect(selectedResidents);
     toast.success("Residents added successfully");
   };
 
-  return (
-    <div className="wrp">
-      <div className="searchDiv">
-        <p className="text-cpn">Search Resident:</p>
-        <div className="search-ctn">
-          <input
-            type="text"
-            id="searchInput"
-            className="search-input"
-            placeholder="Search here..."
-            value={searchValue}
-            onChange={(e) => handleSearch(e.target.value)}
-          />
-          <ul
-            id="suggestions"
-            className={`suggestions ${suggestions.length === 0 ? "hidden" : ""}`}
-          >
+  // Render Methods
+  const renderSearchInput = () => (
+    <div className="searchDiv">
+      <p className="text-cpn">Search Resident:</p>
+      <div className="search-ctn">
+        <input
+          type="text"
+          id="searchInput"
+          className="search-input"
+          placeholder="Search here..."
+          value={searchValue}
+          onChange={(e) => handleSearch(e.target.value)}
+        />
+        {suggestions.length > 0 && (
+          <ul className="suggestions">
             {suggestions.map((name, index) => (
               <li
                 key={index}
@@ -96,30 +114,38 @@ export default function ResidentAddModal({ onResidentsSelect }: ResidentAddModal
               </li>
             ))}
           </ul>
-        </div>
+        )}
       </div>
+    </div>
+  );
 
-      <div className="inforDiv">
-        <p className="text-cpn">Selected Residents:</p>
-        <div className="selectedRes">
-          {selectedResidents.length > 0 ? (
-            selectedResidents.map((resident) => (
-              <div key={resident.id} className="selectedResidentItem">
-                {resident.name} (ID: {resident.id})
-                <span
-                  className="remove-icon"
-                  onClick={() => handleRemove(resident.id)}
-                >
-                  &times;
-                </span>
-              </div>
-            ))
-          ) : (
-            <p>No residents selected</p>
-          )}
-        </div>
+  const renderSelectedResidents = () => (
+    <div className="inforDiv">
+      <p className="text-cpn">Selected Residents:</p>
+      <div className="selectedRes">
+        {selectedResidents.length > 0 ? (
+          selectedResidents.map((resident) => (
+            <div key={resident.id} className="selectedResidentItem">
+              {resident.name} (ID: {resident.id})
+              <span
+                className="remove-icon"
+                onClick={() => handleRemove(resident.id)}
+              >
+                &times;
+              </span>
+            </div>
+          ))
+        ) : (
+          <p>No residents selected</p>
+        )}
       </div>
+    </div>
+  );
 
+  return (
+    <div className="wrp">
+      {renderSearchInput()}
+      {renderSelectedResidents()}
       <div className="wrp-btn">
         <button className="saveButton" type="button" onClick={handleSave}>
           Save
