@@ -1,14 +1,19 @@
 .main-dashboard {
   display: flex;
+  flex-direction: row;
 }
 
 .dashboard-content {
   background-color: beige;
   padding: 20px;
-  overflow: scroll;
+  overflow-y: scroll;
+  overflow-x: auto;
   max-width: 100%;
+  min-height: 100vh;
 
   display: flex;
   flex-direction: column;
   gap: 32px;
+  border-radius: 8px;
+  box-sizing: border-box;
 }
