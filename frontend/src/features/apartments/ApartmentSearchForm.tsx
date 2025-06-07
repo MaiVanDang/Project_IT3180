@@ -1,20 +1,40 @@
-import { useState } from "react";
+import { useState, ChangeEvent, FormEvent } from "react";
 import Form from "../../components/Form";
 import FormField from "../../components/FormField";
 import Button from "../../components/Button";
 import { HiMagnifyingGlass, HiXMark } from "react-icons/hi2";
 
-export default function ResidentSearchForm({ onSearch }: { onSearch: (filters: string) => void }) {
-  const [searchParams, setSearchParams] = useState({
-    addressNumber: "",
-    ownerName: "",
-    ownerPhone: "",
-    status: "",
-  });
+// Types
+interface SearchParams {
+  addressNumber: string;
+  ownerName: string;
+  ownerPhone: string;
+  status: ApartmentStatus;
+}
 
-  const statusOptions = ["Business", "Residential", "Vacant", ""];
+interface ApartmentSearchFormProps {
+  onSearch: (filters: string) => void;
+}
 
-  const handleChange = (e: any) => {
+type ApartmentStatus = "Business" | "Residential" | "Vacant" | "";
+
+// Constants
+const STATUS_OPTIONS: ApartmentStatus[] = ["Business", "Residential", "Vacant", ""];
+
+const INITIAL_SEARCH_PARAMS: SearchParams = {
+  addressNumber: "",
+  ownerName: "",
+  ownerPhone: "",
+  status: "",
+};
+
+// Component
+export default function ApartmentSearchForm({ onSearch }: ApartmentSearchFormProps) {
+  // State
+  const [searchParams, setSearchParams] = useState<SearchParams>(INITIAL_SEARCH_PARAMS);
+
+  // Event Handlers
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { id, value } = e.target;
     setSearchParams((prev) => ({
       ...prev,
@@ -22,19 +42,27 @@ export default function ResidentSearchForm({ onSearch }: { onSearch: (filters: s
     }));
   };
 
-  const handleSubmit = (e: any) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
+    const filterString = buildFilterString();
+    onSearch(filterString);
+  };
 
-    // Tạo chuỗi filter dựa trên Spring Filter syntax
-    let filterString = "";
-    const filters = [];
+  const handleClear = () => {
+    setSearchParams(INITIAL_SEARCH_PARAMS);
+    onSearch("");
+  };
+
+  // Helper Methods
+  const buildFilterString = (): string => {
+    const filters: string[] = [];
 
     if (searchParams.addressNumber) {
-      filters.push(`addressNumber~'*${searchParams.addressNumber}*'`); // Tìm kiếm mờ với *
+      filters.push(`addressNumber~'*${searchParams.addressNumber}*'`);
     }
 
     if (searchParams.ownerName) {
-      filters.push(`cic:'${searchParams.ownerName}'`); // Tìm chính xác tên chủ sở hữu
+      filters.push(`cic:'${searchParams.ownerName}'`);
     }
 
     if (searchParams.status) {
@@ -42,111 +70,97 @@ export default function ResidentSearchForm({ onSearch }: { onSearch: (filters: s
     }
 
     if (searchParams.ownerPhone) {
-      filters.push(`apartmentId:${searchParams.ownerPhone}`); // Tìm chính xác số điện thoại
+      filters.push(`apartmentId:${searchParams.ownerPhone}`);
     }
 
-    // Kết hợp các điều kiện bằng AND
-    if (filters.length > 0) {
-      filterString = filters.join(" and ");
-    }
-
-    // Gọi callback với chuỗi filter
-    onSearch(filterString);
+    return filters.length > 0 ? filters.join(" and ") : "";
   };
 
-  const handleClear = () => {
-    setSearchParams({
-      addressNumber: "",
-      ownerName: "",
-      ownerPhone: "",
-      status: "",
-    });
+  // Render Methods
+  const renderSearchField = (
+    id: keyof SearchParams,
+    label: string,
+    placeholder: string,
+    type: "text" | "select" = "text"
+  ) => (
+    <div className="flex-1 min-w-60">
+      <FormField>
+        <FormField.Label label={label} />
+        {type === "select" ? (
+          <FormField.Select
+            id={id}
+            options={STATUS_OPTIONS}
+            value={searchParams[id]}
+            onChange={handleChange}
+            placeholder={placeholder}
+          />
+        ) : (
+          <FormField.Input
+            id={id}
+            type="text"
+            value={searchParams[id]}
+            onChange={handleChange}
+            placeholder={placeholder}
+          />
+        )}
+      </FormField>
+    </div>
+  );
 
-    // Gọi callback với chuỗi filter rỗng để lấy tất cả dữ liệu
-    onSearch("");
-  };
+  const renderButtons = () => (
+    <Form.Buttons>
+      <Button
+        onClick={handleClear}
+        size="medium"
+        variation="secondary"
+        type="button"
+      >
+        Xóa bộ lọc
+        <span>
+          <HiXMark />
+        </span>
+      </Button>
+
+      <Button
+        onClick={handleSubmit}
+        size="medium"
+        variation="primary"
+        type="submit"
+      >
+        Tìm kiếm
+        <span>
+          <HiMagnifyingGlass />
+        </span>
+      </Button>
+    </Form.Buttons>
+  );
 
   return (
     <Form width="100%">
       <div className="flex flex-wrap gap-4">
-        <div className="flex-1 min-w-60">
-          <FormField>
-            <FormField.Label label={"Mã căn hộ"} />
-            <FormField.Input
-              id="addressNumber"
-              type="text"
-              value={searchParams.addressNumber}
-              onChange={handleChange}
-              placeholder="Tìm theo mã căn hộ"
-            />
-          </FormField>
-        </div>
-
-        <div className="flex-1 min-w-60">
-          <FormField>
-            <FormField.Label label={"Tên chủ hộ"} />
-            <FormField.Input
-              id="ownerName"
-              type="text"
-              value={searchParams.ownerName}
-              onChange={handleChange}
-              placeholder="Tìm theo tên chủ sở hữu"
-            />
-          </FormField>
-        </div>
-
-        <div className="flex-1 min-w-60">
-          <FormField>
-            <FormField.Label label={"Sđt"} />
-            <FormField.Input
-              id="ownerPhone"
-              type="text"
-              value={searchParams.ownerPhone}
-              onChange={handleChange}
-              placeholder="Tìm theo số điện thoại"
-            />
-          </FormField>
-        </div>
-
-        <div className="flex-1 min-w-60">
-          <FormField>
-            <FormField.Label label={"Trạng thái"} />
-            <FormField.Select
-              id="status"
-              options={statusOptions}
-              value={searchParams.status}
-              onChange={handleChange}
-              placeholder="Tất cả trạng thái"
-            />
-          </FormField>
-        </div>
+        {renderSearchField(
+          "addressNumber",
+          "Mã căn hộ",
+          "Tìm theo mã căn hộ"
+        )}
+        {renderSearchField(
+          "ownerName",
+          "Tên chủ hộ",
+          "Tìm theo tên chủ sở hữu"
+        )}
+        {renderSearchField(
+          "ownerPhone",
+          "Sđt",
+          "Tìm theo số điện thoại"
+        )}
+        {renderSearchField(
+          "status",
+          "Trạng thái",
+          "Tất cả trạng thái",
+          "select"
+        )}
       </div>
-
-      <Form.Buttons>
-        <Button
-          onClick={handleClear}
-          size="medium"
-          variation="secondary"
-          type="button"
-        >
-          Xóa bộ lọc
-          <span>
-            <HiXMark />
-          </span>
-        </Button>
-
-        <Button
-          onClick={handleSubmit}
-          size="medium"
-          variation="primary"
-          type="submit"
-        >
-          Tìm kiếm
-          <span>
-            <HiMagnifyingGlass />
-          </span>
-        </Button>
-      </Form.Buttons>
+      {renderButtons()}
     </Form>
   );
 }
