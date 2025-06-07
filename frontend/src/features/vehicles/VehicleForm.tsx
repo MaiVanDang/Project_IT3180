@@ -1,191 +1,278 @@
-import { useState } from "react";
-import Form from "../../components/Form";
-import FormField from "../../components/FormField";
-import Selector from "../../components/Selector";
-import Button from "../../components/Button";
-import { HiOutlinePlusCircle, HiPencil, HiTrash } from "react-icons/hi2";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import "./form.css";
 
-export default function VehicleForm({ vehicle }: any) {
-  const getToday = () => {
-    const today = new Date();
-    return today.toISOString().split("T")[0]; // YYYY-MM-DD
+// Types
+interface StatisticsFormProps {
+  statistic: {
+    addressNumber: string;
   };
+}
 
-  const [formValues, setFormValues] = useState({
-    apartmentId: vehicle?.apartmentId || "",
-    registerDate: vehicle?.registerDate || getToday(),
-    id: vehicle?.id || "",
-    category: vehicle?.category || "",
-  });
-  const vehicleTypeOptions = ["Motorbike", "Car"];
+interface Fee {
+  id: string;
+  name: string;
+  amount: number;
+  feeType: "DepartmentFee" | "ContributionFund";
+}
 
-  const handleChange = (e: any) => {
-    const { id, value } = e.target;
-    setFormValues((prevValues) => ({
-      ...prevValues,
-      [id]: value,
+interface Invoice {
+  id: string;
+  name: string;
+  paymentStatus: "Paid" | "Unpaid";
+  feeList: Fee[];
+}
+
+interface UtilityBill {
+  id: string;
+  name: string;
+  electricity: number;
+  water: number;
+  internet: number;
+  createdAt: string;
+  paymentStatus: "Paid" | "Unpaid";
+}
+
+// Constants
+const API_ENDPOINTS = {
+  invoices: "http://localhost:8080/api/v1/invoiceapartment",
+  utilities: "http://localhost:8080/api/v1/utilitybills",
+};
+
+// Component
+const StatisticsForm = ({ statistic }: StatisticsFormProps) => {
+  // State
+  const [dataInvoice, setDataInvoice] = useState<Invoice[]>([]);
+  const [dataUtility, setDataUtility] = useState<UtilityBill[]>([]);
+  const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({});
+  const [voluntaryFund, setVoluntaryFund] = useState<Record<string, number>>({});
+
+  // Event Handlers
+  const toggleDropdown = (key: string) => {
+    setOpenDropdowns(prev => ({
+      ...prev,
+      [key]: !prev[key]
     }));
   };
 
-  const handleDelete = async (e: any) => {
-    e.preventDefault();
+  const handleVoluntaryFundChange = (invoiceId: string, value: string) => {
+    setVoluntaryFund(prev => ({
+      ...prev,
+      [invoiceId]: parseFloat(value) || 0
+    }));
+  };
 
+  // API Calls
+  const fetchInvoices = async () => {
     try {
-      console.log(formValues.apartmentId);
-      const response = await axios.delete(`http://localhost:8080/api/v1/vehicles/${formValues.apartmentId}`, {
-        data: { id: formValues.id }, // Payload gửi kèm
-        headers: { "Content-Type": "application/json" }, // Đảm bảo header đúng
-      });
-
-      // console.log(response.data);
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
-      toast.success("Delete vehicle successfull!");
-    } catch (error: any) {
-      // Xử lý lỗi chi tiết từ backend
-      if (error.response) {
-        // Có phản hồi từ server
-        const errorData = error.response.data;
-        switch (error.response.status) {
-          case 404: // Not Found - Vehicle Not Found
-            toast.error(`Lỗi: ${errorData.message}`);
-            break;
-          case 400: // Bad Request - Validation Error
-            toast.error(`Lỗi: ${errorData.message}`);
-            break;
-          default:
-            toast.error(`Lỗi: ${errorData.message || "Có lỗi xảy ra, vui lòng thử lại sau"}`);
-        }
-      } else if (error.request) {
-        // Không nhận được phản hồi từ server
-        toast.error("Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối của bạn!");
-      } else {
-        // Lỗi khi thiết lập request
-        toast.error("Đã xảy ra lỗi khi gửi yêu cầu!");
-      }
-      console.error("Chi tiết lỗi:", error);
+      const response = await axios.get(`${API_ENDPOINTS.invoices}/${statistic.addressNumber}`);
+      setDataInvoice(response.data.data);
+    } catch (err) {
+      console.error("Error fetching invoices:", err);
+      toast.error("Failed to load invoices");
     }
   };
 
-  const handleSubmit = async (e: any) => {
-    e.preventDefault();
-
-    const vehicleData = {
-      apartmentId: formValues.apartmentId,
-      id: formValues.id,
-      category: formValues.category,
-      registerDate: formValues.registerDate,
-    };
-
-    console.log(vehicleData);
-
+  const handlePayInvoice = async (invoiceId: string, feeList: Fee[]) => {
     try {
-      const response = await axios.post(
-        "http://localhost:8080/api/v1/vehicles", vehicleData
+      const payload = feeList.reduce((acc, fee) => {
+        if (fee.feeType === "ContributionFund") {
+          acc[fee.id] = voluntaryFund[invoiceId] || 0;
+        }
+        return acc;
+      }, {} as Record<string, number>);
+
+      await axios.put(
+        `${API_ENDPOINTS.invoices}/update/${statistic.addressNumber}/${invoiceId}`,
+        payload,
+        { headers: { "Content-Type": "application/json" } }
       );
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
-      toast.success("Add vehicle successfull");
-    } catch (error: any) {
-      // Xử lý lỗi chi tiết từ backend
-      if (error.response) {
-        // Có phản hồi từ server
-        const errorData = error.response.data;
-        switch (error.response.status) {
-          case 409: // Conflict - Resource Already Exists
-            toast.error(`Lỗi: ${errorData.message}`);
-            break;
-          case 404: // Not Found - Apartment Not Found
-            toast.error(`Lỗi: ${errorData.message}`);
-            break;
-          case 400: // Bad Request - Validation Error
-            toast.error(`Lỗi: ${errorData.message}`);
-            break;
-          default:
-            toast.error(`Lỗi: ${errorData.message || "Có lỗi xảy ra, vui lòng thử lại sau"}`);
-        }
-      } else if (error.request) {
-        // Không nhận được phản hồi từ server
-        toast.error("Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối của bạn!");
-      } else {
-        // Lỗi khi thiết lập request
-        toast.error("Đã xảy ra lỗi khi gửi yêu cầu!");
-      }
-      console.error("Chi tiết lỗi:", error);
+
+      toast.success("Invoice paid successfully!");
+      fetchInvoices();
+    } catch (err) {
+      console.error("Error paying invoice:", err);
+      toast.error("Failed to pay invoice");
     }
   };
+
+  const fetchUtilities = async () => {
+    try {
+      const response = await axios.get(`${API_ENDPOINTS.utilities}/${statistic.addressNumber}`);
+      setDataUtility(response.data.data);
+    } catch (err) {
+      console.error("Error fetching utilities:", err);
+      toast.error("Failed to load utility bills");
+    }
+  };
+
+  const handlePayUtility = async (utilityId: string) => {
+    try {
+      await axios.post(`${API_ENDPOINTS.utilities}/update/${utilityId}`);
+      toast.success("Utility bill paid successfully");
+      fetchUtilities();
+    } catch (err) {
+      console.error("Error paying utility:", err);
+      toast.error("Failed to pay utility bill");
+    }
+  };
+
+  useEffect(() => {
+    fetchInvoices();
+    fetchUtilities();
+  }, []);
+
+  // Render Methods
+  const renderFeeRow = (fee: Fee, invoiceId: string) => (
+    <tr key={fee.id}>
+      <td>{fee.name}</td>
+      <td>{fee.feeType}</td>
+      <td>
+        {fee.name === "Fund 2"
+          ? (fee.amount + (voluntaryFund[invoiceId] || 0)).toLocaleString()
+          : fee.amount.toLocaleString()}{" "}
+        VND
+      </td>
+    </tr>
+  );
+
+  const renderVoluntaryFundInput = (invoice: Invoice) => (
+    invoice.paymentStatus === "Unpaid" &&
+    invoice.feeList.map(fee =>
+      fee.feeType === "ContributionFund" && (
+        <div className="voluntary-fund" key={fee.name}>
+          <label>
+            Nhập <strong>{fee.name}</strong>:{" "}
+            <input
+              className="inputFund"
+              type="text"
+              value={voluntaryFund[invoice.id] || ""}
+              onChange={(e) => handleVoluntaryFundChange(invoice.id, e.target.value)}
+            />
+          </label>
+        </div>
+      )
+    )
+  );
+
+  const renderInvoiceDetails = (invoice: Invoice) => (
+    <div className="billing-details">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          {invoice.feeList.map(fee => renderFeeRow(fee, invoice.id))}
+        </tbody>
+      </table>
+
+      {renderVoluntaryFundInput(invoice)}
+
+      <div className="total-due">
+        Total amount:{" "}
+        {invoice.feeList
+          .reduce((sum, fee) => {
+            const amount = fee.amount + (fee.feeType === "DepartmentFee" ? (voluntaryFund[invoice.id] || 0) : 0);
+            return sum + amount;
+          }, 0)
+          .toLocaleString()}{" "}
+        VND
+      </div>
+
+      {invoice.paymentStatus === "Unpaid" && (
+        <div className="divPay">
+          <button
+            onClick={() => handlePayInvoice(invoice.id, invoice.feeList)}
+            className="payButton"
+            type="submit"
+          >
+            Pay <i className="bx bxs-credit-card-alt"></i>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderUtilityDetails = (utility: UtilityBill) => (
+    <div className="billing-details">
+      <table>
+        <thead>
+          <tr>
+            <th>Electricity</th>
+            <th>Water</th>
+            <th>Internet</th>
+            <th>Created At</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{utility.electricity.toLocaleString()} VND</td>
+            <td>{utility.water.toLocaleString()} VND</td>
+            <td>{utility.internet.toLocaleString()} VND</td>
+            <td>{new Date(utility.createdAt).toLocaleDateString()}</td>
+            <td>
+              {(utility.electricity + utility.water + utility.internet).toLocaleString()} VND
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div className="divPay">
+        <button
+          onClick={() => handlePayUtility(utility.id)}
+          className="payButton"
+          type="submit"
+        >
+          Pay <i className="bx bxs-credit-card-alt"></i>
+        </button>
+      </div>
+    </div>
+  );
 
   return (
-    <Form width="400px" onSubmit={handleSubmit}>
-      <Form.Fields>
-        <FormField>
-          <FormField.Label label={"Mã căn hộ"} />
-          <FormField.Input
-            id="apartmentId"
-            type="text"
-            value={formValues.apartmentId}
-            onChange={handleChange}
-          />
-        </FormField>
+    <div className="wra">
+      <div className="cts">
+        <p className="invoiceText">Invoice (Fee and Fund):</p>
+        {dataInvoice.map((invoice, index) => (
+          <div key={index}>
+            <div
+              className={`billing-header ${invoice.paymentStatus === "Unpaid" ? "incomplete" : "complete"}`}
+              onClick={() => toggleDropdown(invoice.id)}
+            >
+              <span className="spanText">{invoice.name}</span>
+              <span className="status">{invoice.paymentStatus}</span>
+              <span className={`arrow ${openDropdowns[invoice.id] ? "open" : ""}`}>
+                &#9662;
+              </span>
+            </div>
+            {openDropdowns[invoice.id] && renderInvoiceDetails(invoice)}
+          </div>
+        ))}
 
-        {<FormField>
-          <FormField.Label label={"Thời gian"} />
-          <FormField.Input
-            id="registerDate"
-            type="date"
-            value={formValues.registerDate}
-            onChange={handleChange}
-          />
-        </FormField>}
-
-        <FormField>
-          <FormField.Label label={"Biển số"} />
-          <FormField.Input
-            id="id"
-            type="text"
-            value={formValues.id}
-            onChange={handleChange}
-          />
-        </FormField>
-      </Form.Fields>
-
-      <Selector
-        value={formValues.category}
-        onChange={handleChange}
-        id="category"
-        options={vehicleTypeOptions}
-        label={"Loại:"}
-      ></Selector>
-
-      {vehicle ? (
-        <Form.Buttons>
-          <Button variation="danger" size="medium" onClick={handleDelete}>
-            Xóa
-            <span>
-              <HiTrash />
-            </span>
-          </Button>
-          {/* <Button variation="secondary" size="medium">
-            Update
-            <span>
-              <HiPencil />
-            </span>
-          </Button> */}
-        </Form.Buttons>
-      ) : (
-        <Form.Buttons>
-          <Button size="medium" variation="primary" onClick={handleSubmit}>
-            Thêm
-            <span>
-              <HiOutlinePlusCircle />
-            </span>
-          </Button>
-        </Form.Buttons>
-      )}
-    </Form>
+        <p className="invoiceText">Utility Bill:</p>
+        {dataUtility.map((utility, index) => (
+          <div key={index}>
+            <div
+              className={`billing-header ${utility.paymentStatus === "Unpaid" ? "incomplete" : "complete"}`}
+              onClick={() => toggleDropdown(utility.id)}
+            >
+              <span className="spanText">{utility.name}</span>
+              <span className="status">{utility.paymentStatus}</span>
+              <span className={`arrow ${openDropdowns[utility.id] ? "open" : ""}`}>
+                &#9662;
+              </span>
+            </div>
+            {openDropdowns[utility.id] && renderUtilityDetails(utility)}
+          </div>
+        ))}
+      </div>
+    </div>
   );
-}
+};
+
+export default StatisticsForm;
