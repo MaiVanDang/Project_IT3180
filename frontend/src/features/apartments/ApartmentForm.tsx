@@ -3,13 +3,14 @@ import Form from "../../components/Form";
 import FormField from "../../components/FormField";
 import Selector from "../../components/Selector";
 import Button from "../../components/Button";
-import { HiOutlinePlusCircle, HiPencil, HiTrash } from "react-icons/hi2";
+import { HiOutlinePlusCircle, HiPencil } from "react-icons/hi2";
 import Table from "../../components/Table";
 import Modal from "../../components/Modal";
 import ResidentAddModal from "./ResidentAddModal";
 import axios from "axios";
 import { toast } from "react-toastify";
 
+// Types
 interface Resident {
   id: number;
   name: string;
@@ -21,10 +22,22 @@ interface Vehicle {
   category: string;
 }
 
+interface ApartmentFormValues {
+  addressNumber: string;
+  status: ApartmentStatus;
+  area: string;
+  ownerName: string;
+  ownerPhone: string;
+  ownerId: string | number;
+  memberIds: number[];
+}
+
+type ApartmentStatus = "Business" | "Residential" | "Vacant" | "";
+
 interface ApartmentFormProps {
   apartment?: {
     addressNumber: string;
-    status: "Business" | "Residential" | "Vacant" | "";
+    status: ApartmentStatus;
     area: string;
     ownerName: string;
     ownerPhone: string;
@@ -32,14 +45,28 @@ interface ApartmentFormProps {
     residentList: Resident[];
     vehicleList: Vehicle[];
   };
-  fetchApartments: () => void; // A function to refresh the apartment list after adding a new apartment
+  fetchApartments: () => void;
 }
 
+interface FormErrors {
+  [key: string]: string;
+}
+
+// Constants
+const API_ENDPOINTS = {
+  apartments: "http://localhost:8080/api/v1/apartments",
+};
+
+const STATUS_OPTIONS: ApartmentStatus[] = ["Business", "Residential"];
+const PHONE_REGEX = /^[0-9]{10,11}$/;
+
+// Component
 export default function ApartmentForm({
   apartment,
   fetchApartments,
 }: ApartmentFormProps) {
-  const [formValues, setFormValues] = useState({
+  // State
+  const [formValues, setFormValues] = useState<ApartmentFormValues>({
     addressNumber: apartment?.addressNumber || "",
     status: apartment?.status || "",
     area: apartment?.area || "",
@@ -52,53 +79,68 @@ export default function ApartmentForm({
   const [selectedResidents, setSelectedResidents] = useState<Resident[]>(
     apartment?.residentList || []
   );
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Event Handlers
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { id, value } = e.target;
-    setFormValues((prevValues) => ({
-      ...prevValues,
-      [id]: value,
-    }));
-
-    // Clear error for this field when user starts typing
-    if (errors[id]) {
-      setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[id];
-        return newErrors;
-      });
-    }
+    setFormValues((prev) => ({ ...prev, [id]: value }));
+    clearFieldError(id);
   };
 
   const handleResidentsSelect = (newResidents: Resident[]) => {
-    // Combine current residents with new residents, removing duplicates by ID
     const updatedResidents = [
       ...selectedResidents,
       ...newResidents.filter(
-        (newResident) =>
-          !selectedResidents.some(
-            (existingResident) => existingResident.id === newResident.id
-          )
+        (newRes) => !selectedResidents.some((existingRes) => existingRes.id === newRes.id)
       ),
     ];
 
     setSelectedResidents(updatedResidents);
-
-    // Update memberIds for API
-    setFormValues((prevValues) => ({
-      ...prevValues,
-      memberIds: updatedResidents.map((resident) => resident.id),
+    setFormValues((prev) => ({
+      ...prev,
+      memberIds: updatedResidents.map((res) => res.id),
     }));
   };
 
-  const validateUpdateForm = () => {
-    const newErrors: { [key: string]: string } = {};
+  // Validation Methods
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
 
-    // Validation specifically for update - only validate fields that can be updated
+    if (!formValues.addressNumber.trim()) {
+      newErrors.addressNumber = "Vui lòng nhập số căn hộ";
+    }
+
+    if (!formValues.area.trim()) {
+      newErrors.area = "Vui lòng nhập diện tích";
+    } else if (isNaN(Number(formValues.area))) {
+      newErrors.area = "Diện tích phải là số";
+    }
+
+    if (!formValues.status) {
+      newErrors.status = "Vui lòng chọn trạng thái";
+    }
+
+    if (!formValues.ownerId) {
+      newErrors.ownerId = "Vui lòng nhập ID chủ hộ";
+    }
+
+    if (!formValues.ownerPhone.trim()) {
+      newErrors.ownerPhone = "Vui lòng nhập số điện thoại";
+    } else if (!PHONE_REGEX.test(formValues.ownerPhone)) {
+      newErrors.ownerPhone = "Số điện thoại không hợp lệ";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateUpdateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+
     if (!formValues.area) {
       newErrors.area = "Vui lòng nhập diện tích";
     } else if (isNaN(Number(formValues.area))) {
@@ -117,229 +159,125 @@ export default function ApartmentForm({
       newErrors.ownerPhone = "Vui lòng nhập số điện thoại";
     }
 
-    // Set errors to state
     setErrors(newErrors);
-    console.log("Update validation errors:", newErrors);
-
-    // Return validation result
     return Object.keys(newErrors).length === 0;
   };
 
-  const extractErrorMessage = (err: any): string => {
-    let errorMessage = "Đã có lỗi xảy ra";
-
-    if (err.response) {
-      const errorData = err.response.data;
-      console.log("Error response structure:", errorData);
-
-      // Extract error message from response
-      if (typeof errorData === 'string') {
-        errorMessage = errorData;
-      }
-      else if (errorData && typeof errorData === 'object') {
-        // Extract error message in priority order
-        errorMessage = errorData.message ||
-          errorData.error ||
-          (errorData.errors && Array.isArray(errorData.errors) ? errorData.errors.join(", ") : errorData.detail) ||
-          JSON.stringify(errorData);
-      }
-
-      // Check for specific error messages from updateResident method
-      if (errorMessage.includes("is not found")) {
-        // Resident not found error
-        return `Không tìm thấy cư dân: ${errorMessage}`;
-      } else if (errorMessage.includes("Apartment with address number") && errorMessage.includes("not found")) {
-        // Apartment not found error
-        return `Căn hộ không tồn tại: ${errorMessage}`;
-      } else if (errorMessage.includes("Error saving resident")) {
-        // General save error
-        return `Lỗi khi lưu thông tin cư dân: ${errorMessage.replace("Error saving resident: ", "")}`;
-      }
-
-      console.error(`HTTP error ${err.response.status}: ${errorMessage}`);
-    } else if (err.request) {
-      errorMessage = "Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối của bạn!";
-      console.error("No response received:", err.request);
-    } else {
-      console.error("Error setting up request:", err.message);
+  // Helper Methods
+  const clearFieldError = (fieldId: string) => {
+    if (errors[fieldId]) {
+      setErrors((prev) => {
+        const { [fieldId]: _, ...rest } = prev;
+        return rest;
+      });
     }
+  };
 
-    return errorMessage;
+  const handleSuccess = (message: string) => {
+    toast.success(message);
+    if (typeof fetchApartments === 'function') {
+      fetchApartments().catch(console.error);
+    }
+    setTimeout(() => window.location.reload(), 1500);
+  };
+
+  const extractErrorMessage = (err: any): string => {
+    if (err.response?.data) {
+      const errorData = err.response.data;
+      return typeof errorData === 'string' 
+        ? errorData 
+        : errorData.message || "Đã có lỗi xảy ra";
+    }
+    return err.message || "Đã có lỗi xảy ra";
+  };
+
+  // Submit Handlers
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    setIsSubmitting(true);
+    try {
+      const response = await axios.post(API_ENDPOINTS.apartments, {
+        addressNumber: formValues.addressNumber,
+        area: formValues.area,
+        status: formValues.status,
+        ownerId: formValues.ownerId,
+        ownerPhone: formValues.ownerPhone,
+        memberIds: formValues.memberIds,
+      });
+
+      handleSuccess("Thêm căn hộ thành công");
+      resetForm();
+    } catch (err: any) {
+      toast.error(extractErrorMessage(err));
+      handleFieldErrors(err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!validateUpdateForm()) {
-      console.log("Form validation failed", errors);
-      return;
-    }
+    if (!validateUpdateForm()) return;
 
     setIsSubmitting(true);
-
     try {
-      const data = {
-        area: formValues.area,
-        status: formValues.status,
-        ownerId: formValues.ownerId,
-        residents: formValues.memberIds,
-        ownerPhone: formValues.ownerPhone,
-      };
-      console.log("Updating apartment with data:", data);
-
-      const response = await axios.put(
-        `http://localhost:8080/api/v1/apartments/${formValues.addressNumber}`,
-        data
+      await axios.put(
+        `${API_ENDPOINTS.apartments}/${formValues.addressNumber}`,
+        {
+          area: formValues.area,
+          status: formValues.status,
+          ownerId: formValues.ownerId,
+          residents: formValues.memberIds,
+          ownerPhone: formValues.ownerPhone,
+        }
       );
 
-      toast.success("Cập nhật thành công");
-
-      // Kiểm tra fetchApartments tồn tại và là hàm trước khi gọi
-      if (typeof fetchApartments === 'function') {
-        try {
-          fetchApartments();
-        } catch (fetchError) {
-          console.error("Error refreshing apartment list:", fetchError);
-        }
-      } else {
-        console.log("fetchApartments is not available or not a function, skipping refresh");
-      }
-
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
-    } catch (err) {
-      const errorMessage = extractErrorMessage(err);
-      toast.error(errorMessage);
-
-      // If there are field-specific errors, update the errors state
-      if (err.response?.data?.fieldErrors) {
-        const fieldErrors = err.response.data.fieldErrors;
-        setErrors(prev => ({
-          ...prev,
-          ...fieldErrors
-        }));
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Submit button clicked");
-
-    if (!validateForm()) {
-      console.log("Form validation failed", errors);
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    // Create apartment data object
-    const apartmentData = {
-      addressNumber: formValues.addressNumber,
-      area: formValues.area,
-      status: formValues.status,
-      ownerId: formValues.ownerId,
-      ownerPhone: formValues.ownerPhone,
-      memberIds: formValues.memberIds,
-    };
-
-    console.log("Sending apartment data:", apartmentData);
-
-    try {
-      const response = await axios.post(
-        "http://localhost:8080/api/v1/apartments",
-        apartmentData
-      );
-
-      console.log("Response success:", response.data);
-      toast.success("Thêm căn hộ thành công");
-
-      // Reset form
-      setFormValues({
-        addressNumber: "",
-        status: "",
-        area: "",
-        ownerName: "",
-        ownerId: "",
-        ownerPhone: "",
-        memberIds: [],
-      });
-      setSelectedResidents([]);
-
-      // Kiểm tra fetchApartments tồn tại và là hàm trước khi gọi
-      if (typeof fetchApartments === 'function') {
-        try {
-          fetchApartments();
-        } catch (fetchError) {
-          console.error("Error refreshing apartment list:", fetchError);
-        }
-      } else {
-        console.log("fetchApartments is not available or not a function, skipping refresh");
-      }
-
-      // Delay reload if needed
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
+      handleSuccess("Cập nhật thành công");
     } catch (err: any) {
-      console.error("Error details:", err);
-
-      const errorMessage = extractErrorMessage(err);
-      toast.error(errorMessage);
-
-      // If there are field-specific errors, update the errors state
-      if (err.response?.data?.fieldErrors) {
-        const fieldErrors = err.response.data.fieldErrors;
-        setErrors(prev => ({
-          ...prev,
-          ...fieldErrors
-        }));
-      }
+      toast.error(extractErrorMessage(err));
+      handleFieldErrors(err);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const validateForm = () => {
-    const newErrors: { [key: string]: string } = {};
+  // Render Methods
+  const renderResidentTable = () => (
+    <Table columns="1fr 1fr">
+      <Table.Header size="small">
+        <div>Tên</div>
+        <div>Ngày sinh</div>
+      </Table.Header>
+      {selectedResidents.map((resident) => (
+        <Table.Row size="small" key={resident.id}>
+          <div>{resident.name}</div>
+          <div>{resident.dob}</div>
+        </Table.Row>
+      ))}
+    </Table>
+  );
 
-    if (!formValues.addressNumber.trim()) {
-      newErrors.addressNumber = "Vui lòng nhập số căn hộ";
-    }
-
-    if (!formValues.area.trim()) {
-      newErrors.area = "Vui lòng nhập diện tích";
-    } else if (isNaN(Number(formValues.area))) {
-      newErrors.area = "Diện tích phải là số";
-    }
-
-    if (!formValues.status) {
-      newErrors.status = "Vui lòng chọn trạng thái";
-    }
-
-    // Only check ownerId instead of ownerName
-    if (!formValues.ownerId) {
-      newErrors.ownerId = "Vui lòng nhập ID chủ hộ";
-    }
-
-    if (!formValues.ownerPhone.trim()) {
-      newErrors.ownerPhone = "Vui lòng nhập số điện thoại";
-    } else if (!/^[0-9]{10,11}$/.test(formValues.ownerPhone)) {
-      newErrors.ownerPhone = "Số điện thoại không hợp lệ";
-    }
-
-    // Set errors to state - important!
-    setErrors(newErrors);
-    console.log("Validation errors:", newErrors);
-
-    // Return validation result
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const statusOptions = ["Business", "Residential"];
+  const renderVehicleTable = () => (
+    apartment?.vehicleList && (
+      <>
+        <label>Phương tiện:</label>
+        <Table columns="1fr 1fr">
+          <Table.Header size="small">
+            <div>Biển số xe</div>
+            <div>Loại xe</div>
+          </Table.Header>
+          {apartment.vehicleList.map((vehicle) => (
+            <Table.Row size="small" key={vehicle.id}>
+              <div>{vehicle.id}</div>
+              <div>{vehicle.category}</div>
+            </Table.Row>
+          ))}
+        </Table>
+      </>
+    )
+  );
 
   return (
     <Form width="800px">
@@ -416,18 +354,7 @@ export default function ApartmentForm({
       </Form.Fields>
 
       <label>Thành viên:</label>
-      <Table columns="1fr 1fr">
-        <Table.Header size="small">
-          <div>Tên</div>
-          <div>Ngày sinh</div>
-        </Table.Header>
-        {selectedResidents.map((resident) => (
-          <Table.Row size="small" key={resident.id}>
-            <div>{resident.name}</div>
-            <div>{resident.dob}</div>
-          </Table.Row>
-        ))}
-      </Table>
+      {renderResidentTable()}
 
       <Modal>
         <Modal.Open id="openAddResident">
@@ -444,23 +371,7 @@ export default function ApartmentForm({
         </Modal.Window>
       </Modal>
 
-      {apartment?.vehicleList && (
-        <>
-          <label>Phương tiện:</label>
-          <Table columns="1fr 1fr">
-            <Table.Header size="small">
-              <div>Biển số xe</div>
-              <div>Loại xe</div>
-            </Table.Header>
-            {apartment.vehicleList.map((vehicle) => (
-              <Table.Row size="small" key={vehicle.id}>
-                <div>{vehicle.id}</div>
-                <div>{vehicle.category}</div>
-              </Table.Row>
-            ))}
-          </Table>
-        </>
-      )}
+      {renderVehicleTable()}
 
       {/* Hiển thị lỗi chung nếu có */}
       {errors.general && (
