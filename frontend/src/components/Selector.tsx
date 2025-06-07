@@ -2,6 +2,16 @@ import { createContext, useContext, useState } from "react";
 import styled from "styled-components";
 import { capitalize } from "../utils/helpers";
 
+// Types
+interface SelectorProps {
+  options: string[];
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  id: string;
+  value: string;
+  label: string;
+}
+
+// Styled Components
 const StyledSelector = styled.div`
   border: none;
   background-color: var(--color-grey-0);
@@ -21,86 +31,58 @@ const StyledOption = styled.div`
 `;
 
 const StyledInput = styled.input`
-  width: 20px; /* Điều chỉnh kích thước */
-  height: 20px; /* Điều chỉnh kích thước */
-  appearance: none; /* Loại bỏ giao diện mặc định */
-  border: 1px solid var(--color-grey-400); /* Viền ô */
-  border-radius: 50%; /* Tạo hình tròn */
+  width: 20px;
+  height: 20px;
+  appearance: none;
+  border: 1px solid var(--color-grey-400);
+  border-radius: 50%;
   outline: none;
   cursor: pointer;
   background-color: var(--color-grey-100);
 
   &:checked {
-    background-color: var(--color-green-500); /* Màu khi được chọn */
-    border-color: var(--color-grey-400); /* Viền khi được chọn */
+    background-color: var(--color-green-500);
+    border-color: var(--color-grey-400);
   }
 
   &:hover {
-    border-color: var(--color-grey-400); /* Hiệu ứng khi hover */
+    border-color: var(--color-grey-400);
   }
 `;
 
-// const SelectorContext = createContext();
+const StyledLabel = styled.label`
+  font-size: 14px;
+  color: var(--color-grey-700);
+`;
 
-// export default function Selector({
-//   id,
-//   children,
-//   type,
-//   value: defaultValue,
-//   onChange,
-// }) {
-//   const [selection, setSelection] = useState(defaultValue || "");
-
-//   const select = setSelection;
-
-//   console.log(selection);
-
-//   return (
-//     <SelectorContext.Provider value={{ selection, select, onChange }}>
-//       <StyledSelector id={id} type={type} value={selection}>
-//         {children}
-//       </StyledSelector>
-//     </SelectorContext.Provider>
-//   );
-// }
-
-// function Option({ option }) {
-//   const { selection, select, onChange } = useContext(SelectorContext);
-//   return (
-//     <StyledOption>
-//       <StyledInput
-//         type="radio"
-//         id={option}
-//         checked={selection === option}
-//         value={option}
-//         onChange={(e) => {
-//           select(option), onChange(e.target.value);
-//         }}
-//       />
-//       <label>{capitalize(option)}</label>
-//     </StyledOption>
-//   );
-// }
-
-// Selector.Option = Option;
-
-export default function Selector({ options, onChange, id, value, label }) {
+// Component
+const Selector: React.FC<SelectorProps> = ({ 
+  options, 
+  onChange, 
+  id, 
+  value, 
+  label 
+}) => {
   return (
     <StyledSelector id={id}>
-      <label>{label}</label>
+      <StyledLabel>{label}</StyledLabel>
       {options.map((option) => (
         <StyledOption key={option}>
           <StyledInput
             type="radio"
-            id={id}
+            id={`${id}-${option}`}
             name={id}
             value={option}
             checked={value === option}
             onChange={onChange}
           />
-          <label htmlFor={option}>{capitalize(option)}</label>
+          <StyledLabel htmlFor={`${id}-${option}`}>
+            {capitalize(option)}
+          </StyledLabel>
         </StyledOption>
       ))}
     </StyledSelector>
   );
-}
+};
+
+export default Selector;
