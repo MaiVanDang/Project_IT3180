@@ -1,6 +1,5 @@
 package com.example.service;
 
-
 import com.example.dto.request.UserCreateRequest;
 import com.example.dto.response.ApiResponse;
 import com.example.dto.response.UserResponse;
@@ -13,105 +12,150 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-@AllArgsConstructor
 @Service
+@AllArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
-    //Logic fetch all user
+    /**
+     * Retrieve all users from database
+     */
     public List<User> fetchAllUser() {
-        return this.userRepository.findAll();
+        List<User> userList = new ArrayList<>();
+        userList.addAll(this.userRepository.findAll());
+        return userList;
     }
 
+    /**
+     * Convert and fetch all users as UserResponse
+     */
     public List<UserResponse> fetchAllUserResponse() {
-        List<User> users = this.userRepository.findAll();
-        return this.userMapper.toUserResponseList(users);
+        var users = this.fetchAllUser();
+        return Optional.ofNullable(users)
+                .map(this.userMapper::toUserResponseList)
+                .orElse(new ArrayList<>());
     }
 
-    //fetch user by id
-    public User fetchUserById(long id) throws UserInfoException {
-        User user = this.userRepository.findById(id)
-                .orElseThrow(() -> new UserInfoException("User with id " + id + " is not found"));
+    /**
+     * Find user by their unique identifier
+     */
+    public User fetchUserById(final long id) throws UserInfoException {
+        var userOptional = this.userRepository.findById(id);
+        var user = userOptional.orElseThrow(() -> 
+            new UserInfoException(String.format("User with id %d is not found", id)));
+            
         if (user.getIsActive() == 0) {
-            throw new UserInfoException("User with id " + id + " is not active");
+            throw new UserInfoException(String.format("User with id %d is not active", id));
         }
         return user;
     }
 
-    //Logic get user by email
-    public User getUserByEmail(String email) {
-        return this.userRepository.findByEmail(email);
+    /**
+     * Retrieve user by email address
+     */
+    public User getUserByEmail(final String email) {
+        return Optional.ofNullable(this.userRepository.findByEmail(email))
+                .orElse(null);
     }
 
-    //Logic delete user by id
-    public ApiResponse<String> deleteUser(long id) throws UserInfoException {
-        User currentUser = this.fetchUserById(id);
-        if(currentUser != null) {
+    /**
+     * Soft delete user by setting isActive to 0
+     */
+    public ApiResponse<String> deleteUser(final long id) throws UserInfoException {
+        var currentUser = this.fetchUserById(id);
+        if (currentUser != null) {
             currentUser.setIsActive(0);
             this.userRepository.save(currentUser);
+        } else {
+            throw new UserInfoException(String.format("User with id %d is not found", id));
         }
-        else throw new UserInfoException("User with id " + id + " is not found");
-        ApiResponse<String> response = new ApiResponse<>();
+        
+        var response = new ApiResponse<String>();
         response.setCode(HttpStatus.OK.value());
         response.setMessage("delete user success");
         response.setData(null);
         return response;
     }
 
-    //Logic update user
-    public User updateUser(User reqUser) throws UserInfoException {
-        User currentUser = this.fetchUserById(reqUser.getId());
+    /**
+     * Update existing user information
+     */
+    public User updateUser(final User reqUser) throws UserInfoException {
+        var currentUser = this.fetchUserById(reqUser.getId());
+        
         if (currentUser != null) {
             currentUser.setEmail(reqUser.getEmail());
             currentUser.setName(reqUser.getName());
-            String hashPassword = this.passwordEncoder.encode(reqUser.getPassword());
-            currentUser.setPassword(hashPassword);
-            // update
-            currentUser = this.userRepository.save(currentUser);
+            var encodedPassword = this.passwordEncoder.encode(reqUser.getPassword());
+            currentUser.setPassword(encodedPassword);
+            return this.userRepository.save(currentUser);
         }
-        else throw new UserInfoException("User with id " + reqUser.getId() + " is not found");
-        return currentUser;
+        
+        throw new UserInfoException(String.format("User with id %d is not found", reqUser.getId()));
     }
-    //Check existed email
-    public boolean isEmailExist(String email) {
-        return this.userRepository.findByEmail(email) != null;
+
+    /**
+     * Verify if email already exists in system
+     */
+    public boolean isEmailExist(final String email) {
+        return Optional.ofNullable(this.userRepository.findByEmail(email)).isPresent();
     }
-    //Logic create user
-    public User createUser(UserCreateRequest userCreateRequest) throws UserInfoException {
-        if (isEmailExist(userCreateRequest.getEmail())) {
-            User existingUser = getUserByEmail(userCreateRequest.getEmail());
-            // If user existed and isActive = 1, throw exception
+
+    /**
+     * Create new user or reactivate existing one
+     */
+    public User createUser(final UserCreateRequest userCreateRequest) throws UserInfoException {
+        if (this.isEmailExist(userCreateRequest.getEmail())) {
+            var existingUser = this.getUserByEmail(userCreateRequest.getEmail());
+            
             if (existingUser.getIsActive() == 1) {
-                throw new UserInfoException("User with email " + userCreateRequest.getEmail() + " already exists");
+                throw new UserInfoException(String.format("User with email %s already exists", userCreateRequest.getEmail()));
             }
-            // If user existed but isActive = 0, set isActive = 1 and return updated user
+            
             existingUser.setIsActive(1);
             return this.userRepository.save(existingUser);
         }
-        // If email is not found, create a new user
-        User user = new User();
-        user.setName(userCreateRequest.getName());
-        String hashPassword = this.passwordEncoder.encode(userCreateRequest.getPassword());
-        user.setPassword(hashPassword);
-        user.setEmail(userCreateRequest.getEmail());
-        user.setAuthType("normal");
-        return this.userRepository.save(user);
+
+        var newUser = new User();
+        newUser.setName(userCreateRequest.getName());
+        newUser.setPassword(this.passwordEncoder.encode(userCreateRequest.getPassword()));
+        newUser.setEmail(userCreateRequest.getEmail());
+        newUser.setAuthType("normal");
+        
+        return this.userRepository.save(newUser);
     }
-    public void updateUserToken(String token, String email) {
-        User currentUser = this.getUserByEmail(email);
-        if (currentUser != null) {
-            currentUser.setRefreshToken(token);
-            this.userRepository.save(currentUser);
-        }
+
+    /**
+     * Update user's refresh token
+     */
+    public void updateUserToken(final String token, final String email) {
+        Optional.ofNullable(this.getUserByEmail(email))
+                .ifPresent(currentUser -> {
+                    currentUser.setRefreshToken(token);
+                    this.userRepository.save(currentUser);
+                });
     }
-    public User getUserByRefreshTokenAndEmail(String token, String email) {
-        return this.userRepository.findByRefreshTokenAndEmail(token, email);
+
+    /**
+     * Find user by refresh token and email combination
+     */
+    public User getUserByRefreshTokenAndEmail(final String token, final String email) {
+        return Optional.ofNullable(this.userRepository.findByRefreshTokenAndEmail(token, email))
+                .orElse(null);
     }
-    public UserResponse UserToUserResponse(User user) {
-        return this.userMapper.toUserResponse(user);
+
+    /**
+     * Convert User entity to UserResponse DTO
+     */
+    public UserResponse UserToUserResponse(final User user) {
+        return Optional.ofNullable(user)
+                .map(this.userMapper::toUserResponse)
+                .orElse(null);
     }
 }
