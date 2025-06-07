@@ -1,59 +1,102 @@
 package com.example.controller;
 
-import com.example.dto.request.ApartmentCreateRequest;
-import com.example.dto.request.ApartmentUpdateRequest;
-import com.example.dto.response.PaginatedResponse;
-import com.example.entity.Apartment;
-import com.example.service.ApartmentService;
-import com.turkraft.springfilter.boot.Filter;
+import com.example.dto.request.UserLoginDTO;
+import com.example.dto.request.UserSsoDTO;
+import com.example.dto.response.ApiResponse;
+import com.example.dto.response.ResLoginDTO;
+import com.example.entity.User;
+import com.example.repository.UserRepository;
+import com.example.service.AuthService;
+import com.example.service.SecurityUtil;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+import java.util.Objects;
+
 @RestController
-@RequestMapping("/api/v1/apartments")
-@RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@RequestMapping("/users")
 @CrossOrigin(origins = "http://localhost:5173")
-public class ApartmentController {
-    ApartmentService apartmentService;
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@RequiredArgsConstructor
+public class OAuth2Controller {
 
-    @PostMapping("")
-    public ResponseEntity<Apartment> createOne(@Valid @RequestBody ApartmentCreateRequest request) {
-        Apartment apartment = apartmentService.create(request);
-        return ResponseEntity.status(HttpStatus.OK).body(apartment);
+    AuthService authService;
+    SecurityUtil securityUtil;
+
+    @GetMapping("/auth/social-login")
+    public ResponseEntity<ApiResponse<String>> socialAuth(
+            @RequestParam("login-type") String loginType
+    ) {
+        loginType = loginType.trim().toLowerCase();
+        String url = authService.generateAuthUrl(loginType);
+
+        ApiResponse<String> apiResponse = new ApiResponse<>();
+        apiResponse.setCode(200);
+        apiResponse.setMessage("Success");
+        apiResponse.setData(url);
+
+        return ResponseEntity.ok(apiResponse);
     }
 
-    @GetMapping("")
-    public ResponseEntity<PaginatedResponse<Apartment>> getAll(
-            @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "size", defaultValue = "10") int size,
-            @Filter Specification<Apartment> spec) {
+    @GetMapping("/auth/social/callback")
+    public ResponseEntity<ResLoginDTO> callback(
+            @RequestParam("code") String code,
+            @RequestParam("login_type") String loginType
+    ) throws Exception {
+        Map<String, Object> userInfo = authService.authenticatedAndFetchFrofile(code, loginType);
 
-        Pageable pageable = PageRequest.of(page - 1, size);
-        PaginatedResponse<Apartment> result = apartmentService.getAll(spec, pageable);
+        if (userInfo == null) {
+            return ResponseEntity.badRequest().body(null);
+        }
 
-        return ResponseEntity.status(HttpStatus.OK).body(result);
+        String accountId = "";
+        String name = "";
+        String email = "";
+
+        if (loginType.trim().equals("google")) {
+            accountId = (String) Objects.requireNonNullElse(userInfo.get("sub"), "");
+            name = (String) Objects.requireNonNullElse(userInfo.get("name"), "");
+            email = (String) Objects.requireNonNullElse(userInfo.get("email"), "");
+        } else if (loginType.trim().equals("facebook")) {
+            // todo: continue...
+        }
+
+        UserSsoDTO userSsoDTO = UserSsoDTO.builder()
+                .email(email)
+                .password("")
+                .name(name)
+                .build();
+
+        if (loginType.trim().equals("google")) {
+            userSsoDTO.setGoogleAccountId(accountId);
+            userSsoDTO.setFacebookAccountId("");
+        } else if (loginType.trim().equals("facebook")) {
+            // userLoginDTO.setFacebookAccountId(accountID);
+            // userLoginDTO.setGoogleAccountId("");
+        }
+
+        return this.login(userSsoDTO);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Apartment> getDetail(@PathVariable Long id) {
-        Apartment apartment = apartmentService.getDetail(id);
-        return ResponseEntity.status(HttpStatus.OK).body(apartment);
-    }
+    @PostMapping("/login")
+    public ResponseEntity<ResLoginDTO> login(
+            @Valid @RequestBody UserSsoDTO userSsoDTO
+    ) throws Exception {
+        String token = authService.googleLogin(userSsoDTO);
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Apartment> updateOne(@PathVariable Long id, @RequestBody ApartmentUpdateRequest request) {
-        System.out.println("Apartment ID: " + id);
-        System.out.println("Request: " + request);
-        Apartment apartment = apartmentService.update(id, request);
-        return ResponseEntity.status(HttpStatus.OK).body(apartment);
+        ResLoginDTO.UserLogin user = ResLoginDTO.UserLogin.builder()
+                .email(userSsoDTO.getEmail())
+                .name(userSsoDTO.getName())
+                .build();
+
+        ResLoginDTO resLoginDTO = this.securityUtil.getRefreshedUser(token);
+
+        return ResponseEntity.status(HttpStatus.OK).body(resLoginDTO);
     }
 }
