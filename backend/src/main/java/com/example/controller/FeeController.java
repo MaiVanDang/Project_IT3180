@@ -21,51 +21,54 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/fees")
 @CrossOrigin(origins = "http://localhost:5173")
 public class FeeController {
+
     private final FeeService feeService;
 
-    //fetch all fees
+    // fetch all fees
     @GetMapping("")
-    public ResponseEntity<PaginatedResponse<Fee>> getAllFees(@Filter Specification<Fee> spec,
-                                                             @RequestParam(value = "page", defaultValue = "1") int page,
-                                                             @RequestParam(value = "size", defaultValue = "10") int size) {
+    public ResponseEntity<PaginatedResponse<Fee>> getAllFees(
+            @Filter Specification<Fee> spec,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ) {
         Pageable pageable = PageRequest.of(page - 1, size);
         PaginatedResponse<Fee> feeResponses = this.feeService.fetchAllFees(spec, pageable);
         return ResponseEntity.status(HttpStatus.OK).body(feeResponses);
     }
 
-    //fetch fee by feeCode
+    // fetch fee by feeCode
     @GetMapping("/{id}")
-    public ResponseEntity<Fee> getFeeByFeeCode(@PathVariable("id") Long id) throws Exception {
+    public ResponseEntity<Fee> getFeeByFeeCode(
+            @PathVariable("id") Long id
+    ) throws Exception {
         Fee fetchFee = this.feeService.fetchFeeById(id);
         return ResponseEntity.status(HttpStatus.OK).body(fetchFee);
     }
 
-    //create new fee
+    // create new fee
     @PostMapping("")
-    public ResponseEntity<Fee> createFee(@Valid @RequestBody FeeCreateRequest apiFee) throws Exception {
+    public ResponseEntity<Fee> createFee(
+            @Valid @RequestBody FeeCreateRequest apiFee
+    ) throws Exception {
         Fee fee = this.feeService.createFee(apiFee);
         return ResponseEntity.status(HttpStatus.CREATED).body(fee);
     }
 
-    //update fee
+    // update fee
     @PutMapping("/")
-    public ResponseEntity<Fee> updateFee(@RequestBody Fee apiFee) throws Exception {
+    public ResponseEntity<Fee> updateFee(
+            @RequestBody Fee apiFee
+    ) throws Exception {
         Fee fee = this.feeService.updateFee(apiFee);
         return ResponseEntity.status(HttpStatus.OK).body(fee);
     }
 
-    //Delete resident by feeCode
+    // Delete resident by feeCode
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<String>> deleteFee(@PathVariable("id") Long id) throws Exception {
+    public ResponseEntity<ApiResponse<String>> deleteFee(
+            @PathVariable("id") Long id
+    ) throws Exception {
         ApiResponse<String> response = this.feeService.deleteFee(id);
         return ResponseEntity.ok(response);
     }
-
- //String là KDL đặc biệt, nó không thực thi beforeWrite() như các kdl khác mà chạy luôn => cần bọc lại
-//    //Delete resident by id
-//    @DeleteMapping("/{id}")
-//    public ResponseEntity<String> deleteResident(@PathVariable("id") long id) throws Exception {
-//        this.residentService.deleteResident(id);
-//        return ResponseEntity.ok("deleted resident successfully");
-//    }
 }
