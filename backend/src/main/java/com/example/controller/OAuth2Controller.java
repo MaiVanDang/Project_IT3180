@@ -25,16 +25,22 @@ import java.util.Objects;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
 public class OAuth2Controller {
+
     AuthService authService;
     SecurityUtil securityUtil;
+
     @GetMapping("/auth/social-login")
-    public ResponseEntity<ApiResponse<String>> socialAuth(@RequestParam("login-type") String loginType) {
+    public ResponseEntity<ApiResponse<String>> socialAuth(
+            @RequestParam("login-type") String loginType
+    ) {
         loginType = loginType.trim().toLowerCase();
         String url = authService.generateAuthUrl(loginType);
+
         ApiResponse<String> apiResponse = new ApiResponse<>();
         apiResponse.setCode(200);
         apiResponse.setMessage("Success");
         apiResponse.setData(url);
+
         return ResponseEntity.ok(apiResponse);
     }
 
@@ -43,19 +49,21 @@ public class OAuth2Controller {
             @RequestParam("code") String code,
             @RequestParam("login_type") String loginType
     ) throws Exception {
-        Map<String,Object> userInfo = authService.authenticatedAndFetchFrofile(code,loginType);
-        if(userInfo == null){
+        Map<String, Object> userInfo = authService.authenticatedAndFetchFrofile(code, loginType);
+
+        if (userInfo == null) {
             return ResponseEntity.badRequest().body(null);
         }
+
         String accountId = "";
         String name = "";
         String email = "";
 
-        if(loginType.trim().equals("google")){
-            accountId =(String) Objects.requireNonNullElse(userInfo.get("sub"),"");
-            name =(String) Objects.requireNonNullElse(userInfo.get("name"),"");
-            email =(String) Objects.requireNonNullElse(userInfo.get("email"),"");
-        } else if(loginType.trim().equals("facebook")){
+        if (loginType.trim().equals("google")) {
+            accountId = (String) Objects.requireNonNullElse(userInfo.get("sub"), "");
+            name = (String) Objects.requireNonNullElse(userInfo.get("name"), "");
+            email = (String) Objects.requireNonNullElse(userInfo.get("email"), "");
+        } else if (loginType.trim().equals("facebook")) {
             // todo: continue...
         }
 
@@ -65,10 +73,10 @@ public class OAuth2Controller {
                 .name(name)
                 .build();
 
-        if(loginType.trim().equals("google")){
+        if (loginType.trim().equals("google")) {
             userSsoDTO.setGoogleAccountId(accountId);
             userSsoDTO.setFacebookAccountId("");
-        } else if(loginType.trim().equals("facebook")){
+        } else if (loginType.trim().equals("facebook")) {
             // userLoginDTO.setFacebookAccountId(accountID);
             // userLoginDTO.setGoogleAccountId("");
         }
